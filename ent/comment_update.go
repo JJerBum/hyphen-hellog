@@ -6,8 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hyphen-hellog/ent/author"
 	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/post"
 	"hyphen-hellog/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,13 +30,151 @@ func (cu *CommentUpdate) Where(ps ...predicate.Comment) *CommentUpdate {
 	return cu
 }
 
+// SetContent sets the "content" field.
+func (cu *CommentUpdate) SetContent(s string) *CommentUpdate {
+	cu.mutation.SetContent(s)
+	return cu
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (cu *CommentUpdate) SetCreatedAt(t time.Time) *CommentUpdate {
+	cu.mutation.SetCreatedAt(t)
+	return cu
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (cu *CommentUpdate) SetNillableCreatedAt(t *time.Time) *CommentUpdate {
+	if t != nil {
+		cu.SetCreatedAt(*t)
+	}
+	return cu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cu *CommentUpdate) SetUpdatedAt(t time.Time) *CommentUpdate {
+	cu.mutation.SetUpdatedAt(t)
+	return cu
+}
+
+// SetParentID sets the "parent" edge to the Comment entity by ID.
+func (cu *CommentUpdate) SetParentID(id int) *CommentUpdate {
+	cu.mutation.SetParentID(id)
+	return cu
+}
+
+// SetNillableParentID sets the "parent" edge to the Comment entity by ID if the given value is not nil.
+func (cu *CommentUpdate) SetNillableParentID(id *int) *CommentUpdate {
+	if id != nil {
+		cu = cu.SetParentID(*id)
+	}
+	return cu
+}
+
+// SetParent sets the "parent" edge to the Comment entity.
+func (cu *CommentUpdate) SetParent(c *Comment) *CommentUpdate {
+	return cu.SetParentID(c.ID)
+}
+
+// AddChildrenIDs adds the "childrens" edge to the Comment entity by IDs.
+func (cu *CommentUpdate) AddChildrenIDs(ids ...int) *CommentUpdate {
+	cu.mutation.AddChildrenIDs(ids...)
+	return cu
+}
+
+// AddChildrens adds the "childrens" edges to the Comment entity.
+func (cu *CommentUpdate) AddChildrens(c ...*Comment) *CommentUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddChildrenIDs(ids...)
+}
+
+// SetPostID sets the "post" edge to the Post entity by ID.
+func (cu *CommentUpdate) SetPostID(id int) *CommentUpdate {
+	cu.mutation.SetPostID(id)
+	return cu
+}
+
+// SetNillablePostID sets the "post" edge to the Post entity by ID if the given value is not nil.
+func (cu *CommentUpdate) SetNillablePostID(id *int) *CommentUpdate {
+	if id != nil {
+		cu = cu.SetPostID(*id)
+	}
+	return cu
+}
+
+// SetPost sets the "post" edge to the Post entity.
+func (cu *CommentUpdate) SetPost(p *Post) *CommentUpdate {
+	return cu.SetPostID(p.ID)
+}
+
+// SetAuthorID sets the "author" edge to the Author entity by ID.
+func (cu *CommentUpdate) SetAuthorID(id int) *CommentUpdate {
+	cu.mutation.SetAuthorID(id)
+	return cu
+}
+
+// SetNillableAuthorID sets the "author" edge to the Author entity by ID if the given value is not nil.
+func (cu *CommentUpdate) SetNillableAuthorID(id *int) *CommentUpdate {
+	if id != nil {
+		cu = cu.SetAuthorID(*id)
+	}
+	return cu
+}
+
+// SetAuthor sets the "author" edge to the Author entity.
+func (cu *CommentUpdate) SetAuthor(a *Author) *CommentUpdate {
+	return cu.SetAuthorID(a.ID)
+}
+
 // Mutation returns the CommentMutation object of the builder.
 func (cu *CommentUpdate) Mutation() *CommentMutation {
 	return cu.mutation
 }
 
+// ClearParent clears the "parent" edge to the Comment entity.
+func (cu *CommentUpdate) ClearParent() *CommentUpdate {
+	cu.mutation.ClearParent()
+	return cu
+}
+
+// ClearChildrens clears all "childrens" edges to the Comment entity.
+func (cu *CommentUpdate) ClearChildrens() *CommentUpdate {
+	cu.mutation.ClearChildrens()
+	return cu
+}
+
+// RemoveChildrenIDs removes the "childrens" edge to Comment entities by IDs.
+func (cu *CommentUpdate) RemoveChildrenIDs(ids ...int) *CommentUpdate {
+	cu.mutation.RemoveChildrenIDs(ids...)
+	return cu
+}
+
+// RemoveChildrens removes "childrens" edges to Comment entities.
+func (cu *CommentUpdate) RemoveChildrens(c ...*Comment) *CommentUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveChildrenIDs(ids...)
+}
+
+// ClearPost clears the "post" edge to the Post entity.
+func (cu *CommentUpdate) ClearPost() *CommentUpdate {
+	cu.mutation.ClearPost()
+	return cu
+}
+
+// ClearAuthor clears the "author" edge to the Author entity.
+func (cu *CommentUpdate) ClearAuthor() *CommentUpdate {
+	cu.mutation.ClearAuthor()
+	return cu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *CommentUpdate) Save(ctx context.Context) (int, error) {
+	cu.defaults()
 	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
@@ -59,7 +200,28 @@ func (cu *CommentUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cu *CommentUpdate) defaults() {
+	if _, ok := cu.mutation.UpdatedAt(); !ok {
+		v := comment.UpdateDefaultUpdatedAt()
+		cu.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (cu *CommentUpdate) check() error {
+	if v, ok := cu.mutation.Content(); ok {
+		if err := comment.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Comment.content": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := cu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(comment.Table, comment.Columns, sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -67,6 +229,147 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cu.mutation.Content(); ok {
+		_spec.SetField(comment.FieldContent, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.CreatedAt(); ok {
+		_spec.SetField(comment.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := cu.mutation.UpdatedAt(); ok {
+		_spec.SetField(comment.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if cu.mutation.ParentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ParentTable,
+			Columns: []string{comment.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ParentTable,
+			Columns: []string{comment.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.ChildrensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedChildrensIDs(); len(nodes) > 0 && !cu.mutation.ChildrensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ChildrensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.PostCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.PostTable,
+			Columns: []string{comment.PostColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.PostIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.PostTable,
+			Columns: []string{comment.PostColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -88,9 +391,146 @@ type CommentUpdateOne struct {
 	mutation *CommentMutation
 }
 
+// SetContent sets the "content" field.
+func (cuo *CommentUpdateOne) SetContent(s string) *CommentUpdateOne {
+	cuo.mutation.SetContent(s)
+	return cuo
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (cuo *CommentUpdateOne) SetCreatedAt(t time.Time) *CommentUpdateOne {
+	cuo.mutation.SetCreatedAt(t)
+	return cuo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (cuo *CommentUpdateOne) SetNillableCreatedAt(t *time.Time) *CommentUpdateOne {
+	if t != nil {
+		cuo.SetCreatedAt(*t)
+	}
+	return cuo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cuo *CommentUpdateOne) SetUpdatedAt(t time.Time) *CommentUpdateOne {
+	cuo.mutation.SetUpdatedAt(t)
+	return cuo
+}
+
+// SetParentID sets the "parent" edge to the Comment entity by ID.
+func (cuo *CommentUpdateOne) SetParentID(id int) *CommentUpdateOne {
+	cuo.mutation.SetParentID(id)
+	return cuo
+}
+
+// SetNillableParentID sets the "parent" edge to the Comment entity by ID if the given value is not nil.
+func (cuo *CommentUpdateOne) SetNillableParentID(id *int) *CommentUpdateOne {
+	if id != nil {
+		cuo = cuo.SetParentID(*id)
+	}
+	return cuo
+}
+
+// SetParent sets the "parent" edge to the Comment entity.
+func (cuo *CommentUpdateOne) SetParent(c *Comment) *CommentUpdateOne {
+	return cuo.SetParentID(c.ID)
+}
+
+// AddChildrenIDs adds the "childrens" edge to the Comment entity by IDs.
+func (cuo *CommentUpdateOne) AddChildrenIDs(ids ...int) *CommentUpdateOne {
+	cuo.mutation.AddChildrenIDs(ids...)
+	return cuo
+}
+
+// AddChildrens adds the "childrens" edges to the Comment entity.
+func (cuo *CommentUpdateOne) AddChildrens(c ...*Comment) *CommentUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddChildrenIDs(ids...)
+}
+
+// SetPostID sets the "post" edge to the Post entity by ID.
+func (cuo *CommentUpdateOne) SetPostID(id int) *CommentUpdateOne {
+	cuo.mutation.SetPostID(id)
+	return cuo
+}
+
+// SetNillablePostID sets the "post" edge to the Post entity by ID if the given value is not nil.
+func (cuo *CommentUpdateOne) SetNillablePostID(id *int) *CommentUpdateOne {
+	if id != nil {
+		cuo = cuo.SetPostID(*id)
+	}
+	return cuo
+}
+
+// SetPost sets the "post" edge to the Post entity.
+func (cuo *CommentUpdateOne) SetPost(p *Post) *CommentUpdateOne {
+	return cuo.SetPostID(p.ID)
+}
+
+// SetAuthorID sets the "author" edge to the Author entity by ID.
+func (cuo *CommentUpdateOne) SetAuthorID(id int) *CommentUpdateOne {
+	cuo.mutation.SetAuthorID(id)
+	return cuo
+}
+
+// SetNillableAuthorID sets the "author" edge to the Author entity by ID if the given value is not nil.
+func (cuo *CommentUpdateOne) SetNillableAuthorID(id *int) *CommentUpdateOne {
+	if id != nil {
+		cuo = cuo.SetAuthorID(*id)
+	}
+	return cuo
+}
+
+// SetAuthor sets the "author" edge to the Author entity.
+func (cuo *CommentUpdateOne) SetAuthor(a *Author) *CommentUpdateOne {
+	return cuo.SetAuthorID(a.ID)
+}
+
 // Mutation returns the CommentMutation object of the builder.
 func (cuo *CommentUpdateOne) Mutation() *CommentMutation {
 	return cuo.mutation
+}
+
+// ClearParent clears the "parent" edge to the Comment entity.
+func (cuo *CommentUpdateOne) ClearParent() *CommentUpdateOne {
+	cuo.mutation.ClearParent()
+	return cuo
+}
+
+// ClearChildrens clears all "childrens" edges to the Comment entity.
+func (cuo *CommentUpdateOne) ClearChildrens() *CommentUpdateOne {
+	cuo.mutation.ClearChildrens()
+	return cuo
+}
+
+// RemoveChildrenIDs removes the "childrens" edge to Comment entities by IDs.
+func (cuo *CommentUpdateOne) RemoveChildrenIDs(ids ...int) *CommentUpdateOne {
+	cuo.mutation.RemoveChildrenIDs(ids...)
+	return cuo
+}
+
+// RemoveChildrens removes "childrens" edges to Comment entities.
+func (cuo *CommentUpdateOne) RemoveChildrens(c ...*Comment) *CommentUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveChildrenIDs(ids...)
+}
+
+// ClearPost clears the "post" edge to the Post entity.
+func (cuo *CommentUpdateOne) ClearPost() *CommentUpdateOne {
+	cuo.mutation.ClearPost()
+	return cuo
+}
+
+// ClearAuthor clears the "author" edge to the Author entity.
+func (cuo *CommentUpdateOne) ClearAuthor() *CommentUpdateOne {
+	cuo.mutation.ClearAuthor()
+	return cuo
 }
 
 // Where appends a list predicates to the CommentUpdate builder.
@@ -108,6 +548,7 @@ func (cuo *CommentUpdateOne) Select(field string, fields ...string) *CommentUpda
 
 // Save executes the query and returns the updated Comment entity.
 func (cuo *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
+	cuo.defaults()
 	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
@@ -133,7 +574,28 @@ func (cuo *CommentUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cuo *CommentUpdateOne) defaults() {
+	if _, ok := cuo.mutation.UpdatedAt(); !ok {
+		v := comment.UpdateDefaultUpdatedAt()
+		cuo.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (cuo *CommentUpdateOne) check() error {
+	if v, ok := cuo.mutation.Content(); ok {
+		if err := comment.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Comment.content": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err error) {
+	if err := cuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(comment.Table, comment.Columns, sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt))
 	id, ok := cuo.mutation.ID()
 	if !ok {
@@ -158,6 +620,147 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cuo.mutation.Content(); ok {
+		_spec.SetField(comment.FieldContent, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.CreatedAt(); ok {
+		_spec.SetField(comment.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := cuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(comment.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if cuo.mutation.ParentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ParentTable,
+			Columns: []string{comment.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ParentTable,
+			Columns: []string{comment.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.ChildrensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedChildrensIDs(); len(nodes) > 0 && !cuo.mutation.ChildrensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ChildrensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.PostCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.PostTable,
+			Columns: []string{comment.PostColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.PostIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.PostTable,
+			Columns: []string{comment.PostColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Comment{config: cuo.config}
 	_spec.Assign = _node.assignValues

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"hyphen-hellog/ent/author"
 	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/like"
 	"hyphen-hellog/ent/post"
-	"hyphen-hellog/ent/vote"
 	"reflect"
 	"sync"
 
@@ -78,8 +78,8 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			author.Table:  author.ValidColumn,
 			comment.Table: comment.ValidColumn,
+			like.Table:    like.ValidColumn,
 			post.Table:    post.ValidColumn,
-			vote.Table:    vote.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

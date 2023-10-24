@@ -4,8 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"hyphen-hellog/ent/author"
+	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/like"
+	"hyphen-hellog/ent/post"
 	"hyphen-hellog/ent/predicate"
 	"math"
 
@@ -17,10 +21,13 @@ import (
 // AuthorQuery is the builder for querying Author entities.
 type AuthorQuery struct {
 	config
-	ctx        *QueryContext
-	order      []author.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Author
+	ctx          *QueryContext
+	order        []author.OrderOption
+	inters       []Interceptor
+	predicates   []predicate.Author
+	withPosts    *PostQuery
+	withComments *CommentQuery
+	withLikes    *LikeQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,6 +62,72 @@ func (aq *AuthorQuery) Unique(unique bool) *AuthorQuery {
 func (aq *AuthorQuery) Order(o ...author.OrderOption) *AuthorQuery {
 	aq.order = append(aq.order, o...)
 	return aq
+}
+
+// QueryPosts chains the current query on the "posts" edge.
+func (aq *AuthorQuery) QueryPosts() *PostQuery {
+	query := (&PostClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(author.Table, author.FieldID, selector),
+			sqlgraph.To(post.Table, post.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, author.PostsTable, author.PostsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryComments chains the current query on the "comments" edge.
+func (aq *AuthorQuery) QueryComments() *CommentQuery {
+	query := (&CommentClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(author.Table, author.FieldID, selector),
+			sqlgraph.To(comment.Table, comment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, author.CommentsTable, author.CommentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLikes chains the current query on the "likes" edge.
+func (aq *AuthorQuery) QueryLikes() *LikeQuery {
+	query := (&LikeClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(author.Table, author.FieldID, selector),
+			sqlgraph.To(like.Table, like.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, author.LikesTable, author.LikesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Author entity from the query.
@@ -244,19 +317,67 @@ func (aq *AuthorQuery) Clone() *AuthorQuery {
 		return nil
 	}
 	return &AuthorQuery{
-		config:     aq.config,
-		ctx:        aq.ctx.Clone(),
-		order:      append([]author.OrderOption{}, aq.order...),
-		inters:     append([]Interceptor{}, aq.inters...),
-		predicates: append([]predicate.Author{}, aq.predicates...),
+		config:       aq.config,
+		ctx:          aq.ctx.Clone(),
+		order:        append([]author.OrderOption{}, aq.order...),
+		inters:       append([]Interceptor{}, aq.inters...),
+		predicates:   append([]predicate.Author{}, aq.predicates...),
+		withPosts:    aq.withPosts.Clone(),
+		withComments: aq.withComments.Clone(),
+		withLikes:    aq.withLikes.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
 	}
 }
 
+// WithPosts tells the query-builder to eager-load the nodes that are connected to
+// the "posts" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AuthorQuery) WithPosts(opts ...func(*PostQuery)) *AuthorQuery {
+	query := (&PostClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withPosts = query
+	return aq
+}
+
+// WithComments tells the query-builder to eager-load the nodes that are connected to
+// the "comments" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AuthorQuery) WithComments(opts ...func(*CommentQuery)) *AuthorQuery {
+	query := (&CommentClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withComments = query
+	return aq
+}
+
+// WithLikes tells the query-builder to eager-load the nodes that are connected to
+// the "likes" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AuthorQuery) WithLikes(opts ...func(*LikeQuery)) *AuthorQuery {
+	query := (&LikeClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withLikes = query
+	return aq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		AuthorID int `json:"author_id,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Author.Query().
+//		GroupBy(author.FieldAuthorID).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (aq *AuthorQuery) GroupBy(field string, fields ...string) *AuthorGroupBy {
 	aq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &AuthorGroupBy{build: aq}
@@ -268,6 +389,16 @@ func (aq *AuthorQuery) GroupBy(field string, fields ...string) *AuthorGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		AuthorID int `json:"author_id,omitempty"`
+//	}
+//
+//	client.Author.Query().
+//		Select(author.FieldAuthorID).
+//		Scan(ctx, &v)
 func (aq *AuthorQuery) Select(fields ...string) *AuthorSelect {
 	aq.ctx.Fields = append(aq.ctx.Fields, fields...)
 	sbuild := &AuthorSelect{AuthorQuery: aq}
@@ -309,8 +440,13 @@ func (aq *AuthorQuery) prepareQuery(ctx context.Context) error {
 
 func (aq *AuthorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Author, error) {
 	var (
-		nodes = []*Author{}
-		_spec = aq.querySpec()
+		nodes       = []*Author{}
+		_spec       = aq.querySpec()
+		loadedTypes = [3]bool{
+			aq.withPosts != nil,
+			aq.withComments != nil,
+			aq.withLikes != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Author).scanValues(nil, columns)
@@ -318,6 +454,7 @@ func (aq *AuthorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Autho
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Author{config: aq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -329,7 +466,122 @@ func (aq *AuthorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Autho
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := aq.withPosts; query != nil {
+		if err := aq.loadPosts(ctx, query, nodes,
+			func(n *Author) { n.Edges.Posts = []*Post{} },
+			func(n *Author, e *Post) { n.Edges.Posts = append(n.Edges.Posts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withComments; query != nil {
+		if err := aq.loadComments(ctx, query, nodes,
+			func(n *Author) { n.Edges.Comments = []*Comment{} },
+			func(n *Author, e *Comment) { n.Edges.Comments = append(n.Edges.Comments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withLikes; query != nil {
+		if err := aq.loadLikes(ctx, query, nodes,
+			func(n *Author) { n.Edges.Likes = []*Like{} },
+			func(n *Author, e *Like) { n.Edges.Likes = append(n.Edges.Likes, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (aq *AuthorQuery) loadPosts(ctx context.Context, query *PostQuery, nodes []*Author, init func(*Author), assign func(*Author, *Post)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Author)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(author.PostsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.author_posts
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "author_posts" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "author_posts" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (aq *AuthorQuery) loadComments(ctx context.Context, query *CommentQuery, nodes []*Author, init func(*Author), assign func(*Author, *Comment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Author)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Comment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(author.CommentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.author_comments
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "author_comments" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "author_comments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (aq *AuthorQuery) loadLikes(ctx context.Context, query *LikeQuery, nodes []*Author, init func(*Author), assign func(*Author, *Like)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Author)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Like(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(author.LikesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.author_likes
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "author_likes" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "author_likes" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (aq *AuthorQuery) sqlCount(ctx context.Context) (int, error) {

@@ -4,8 +4,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hyphen-hellog/ent/author"
+	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/like"
+	"hyphen-hellog/ent/post"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +23,71 @@ type AuthorCreate struct {
 	hooks    []Hook
 }
 
+// SetAuthorID sets the "author_id" field.
+func (ac *AuthorCreate) SetAuthorID(i int) *AuthorCreate {
+	ac.mutation.SetAuthorID(i)
+	return ac
+}
+
+// SetJoinedAt sets the "joined_at" field.
+func (ac *AuthorCreate) SetJoinedAt(t time.Time) *AuthorCreate {
+	ac.mutation.SetJoinedAt(t)
+	return ac
+}
+
+// SetNillableJoinedAt sets the "joined_at" field if the given value is not nil.
+func (ac *AuthorCreate) SetNillableJoinedAt(t *time.Time) *AuthorCreate {
+	if t != nil {
+		ac.SetJoinedAt(*t)
+	}
+	return ac
+}
+
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (ac *AuthorCreate) AddPostIDs(ids ...int) *AuthorCreate {
+	ac.mutation.AddPostIDs(ids...)
+	return ac
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (ac *AuthorCreate) AddPosts(p ...*Post) *AuthorCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ac.AddPostIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (ac *AuthorCreate) AddCommentIDs(ids ...int) *AuthorCreate {
+	ac.mutation.AddCommentIDs(ids...)
+	return ac
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (ac *AuthorCreate) AddComments(c ...*Comment) *AuthorCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return ac.AddCommentIDs(ids...)
+}
+
+// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+func (ac *AuthorCreate) AddLikeIDs(ids ...int) *AuthorCreate {
+	ac.mutation.AddLikeIDs(ids...)
+	return ac
+}
+
+// AddLikes adds the "likes" edges to the Like entity.
+func (ac *AuthorCreate) AddLikes(l ...*Like) *AuthorCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ac.AddLikeIDs(ids...)
+}
+
 // Mutation returns the AuthorMutation object of the builder.
 func (ac *AuthorCreate) Mutation() *AuthorMutation {
 	return ac.mutation
@@ -25,6 +95,7 @@ func (ac *AuthorCreate) Mutation() *AuthorMutation {
 
 // Save creates the Author in the database.
 func (ac *AuthorCreate) Save(ctx context.Context) (*Author, error) {
+	ac.defaults()
 	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
@@ -50,8 +121,22 @@ func (ac *AuthorCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ac *AuthorCreate) defaults() {
+	if _, ok := ac.mutation.JoinedAt(); !ok {
+		v := author.DefaultJoinedAt()
+		ac.mutation.SetJoinedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ac *AuthorCreate) check() error {
+	if _, ok := ac.mutation.AuthorID(); !ok {
+		return &ValidationError{Name: "author_id", err: errors.New(`ent: missing required field "Author.author_id"`)}
+	}
+	if _, ok := ac.mutation.JoinedAt(); !ok {
+		return &ValidationError{Name: "joined_at", err: errors.New(`ent: missing required field "Author.joined_at"`)}
+	}
 	return nil
 }
 
@@ -78,6 +163,62 @@ func (ac *AuthorCreate) createSpec() (*Author, *sqlgraph.CreateSpec) {
 		_node = &Author{config: ac.config}
 		_spec = sqlgraph.NewCreateSpec(author.Table, sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt))
 	)
+	if value, ok := ac.mutation.AuthorID(); ok {
+		_spec.SetField(author.FieldAuthorID, field.TypeInt, value)
+		_node.AuthorID = value
+	}
+	if value, ok := ac.mutation.JoinedAt(); ok {
+		_spec.SetField(author.FieldJoinedAt, field.TypeTime, value)
+		_node.JoinedAt = value
+	}
+	if nodes := ac.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.LikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -99,6 +240,7 @@ func (acb *AuthorCreateBulk) Save(ctx context.Context) ([]*Author, error) {
 	for i := range acb.builders {
 		func(i int, root context.Context) {
 			builder := acb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*AuthorMutation)
 				if !ok {

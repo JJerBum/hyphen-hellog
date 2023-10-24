@@ -4,8 +4,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"hyphen-hellog/ent/author"
+	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/like"
 	"hyphen-hellog/ent/post"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +23,115 @@ type PostCreate struct {
 	hooks    []Hook
 }
 
+// SetTitle sets the "title" field.
+func (pc *PostCreate) SetTitle(s string) *PostCreate {
+	pc.mutation.SetTitle(s)
+	return pc
+}
+
+// SetContent sets the "content" field.
+func (pc *PostCreate) SetContent(s string) *PostCreate {
+	pc.mutation.SetContent(s)
+	return pc
+}
+
+// SetPreviewImage sets the "preview_image" field.
+func (pc *PostCreate) SetPreviewImage(s string) *PostCreate {
+	pc.mutation.SetPreviewImage(s)
+	return pc
+}
+
+// SetIsPrivate sets the "is_private" field.
+func (pc *PostCreate) SetIsPrivate(b bool) *PostCreate {
+	pc.mutation.SetIsPrivate(b)
+	return pc
+}
+
+// SetNillableIsPrivate sets the "is_private" field if the given value is not nil.
+func (pc *PostCreate) SetNillableIsPrivate(b *bool) *PostCreate {
+	if b != nil {
+		pc.SetIsPrivate(*b)
+	}
+	return pc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (pc *PostCreate) SetCreatedAt(t time.Time) *PostCreate {
+	pc.mutation.SetCreatedAt(t)
+	return pc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pc *PostCreate) SetNillableCreatedAt(t *time.Time) *PostCreate {
+	if t != nil {
+		pc.SetCreatedAt(*t)
+	}
+	return pc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (pc *PostCreate) SetUpdatedAt(t time.Time) *PostCreate {
+	pc.mutation.SetUpdatedAt(t)
+	return pc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (pc *PostCreate) SetNillableUpdatedAt(t *time.Time) *PostCreate {
+	if t != nil {
+		pc.SetUpdatedAt(*t)
+	}
+	return pc
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (pc *PostCreate) AddCommentIDs(ids ...int) *PostCreate {
+	pc.mutation.AddCommentIDs(ids...)
+	return pc
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (pc *PostCreate) AddComments(c ...*Comment) *PostCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCommentIDs(ids...)
+}
+
+// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+func (pc *PostCreate) AddLikeIDs(ids ...int) *PostCreate {
+	pc.mutation.AddLikeIDs(ids...)
+	return pc
+}
+
+// AddLikes adds the "likes" edges to the Like entity.
+func (pc *PostCreate) AddLikes(l ...*Like) *PostCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return pc.AddLikeIDs(ids...)
+}
+
+// SetAuthorID sets the "author" edge to the Author entity by ID.
+func (pc *PostCreate) SetAuthorID(id int) *PostCreate {
+	pc.mutation.SetAuthorID(id)
+	return pc
+}
+
+// SetNillableAuthorID sets the "author" edge to the Author entity by ID if the given value is not nil.
+func (pc *PostCreate) SetNillableAuthorID(id *int) *PostCreate {
+	if id != nil {
+		pc = pc.SetAuthorID(*id)
+	}
+	return pc
+}
+
+// SetAuthor sets the "author" edge to the Author entity.
+func (pc *PostCreate) SetAuthor(a *Author) *PostCreate {
+	return pc.SetAuthorID(a.ID)
+}
+
 // Mutation returns the PostMutation object of the builder.
 func (pc *PostCreate) Mutation() *PostMutation {
 	return pc.mutation
@@ -25,6 +139,7 @@ func (pc *PostCreate) Mutation() *PostMutation {
 
 // Save creates the Post in the database.
 func (pc *PostCreate) Save(ctx context.Context) (*Post, error) {
+	pc.defaults()
 	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
@@ -50,8 +165,57 @@ func (pc *PostCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pc *PostCreate) defaults() {
+	if _, ok := pc.mutation.IsPrivate(); !ok {
+		v := post.DefaultIsPrivate
+		pc.mutation.SetIsPrivate(v)
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		v := post.DefaultCreatedAt()
+		pc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := pc.mutation.UpdatedAt(); !ok {
+		v := post.DefaultUpdatedAt()
+		pc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pc *PostCreate) check() error {
+	if _, ok := pc.mutation.Title(); !ok {
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Post.title"`)}
+	}
+	if v, ok := pc.mutation.Title(); ok {
+		if err := post.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Post.title": %w`, err)}
+		}
+	}
+	if _, ok := pc.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Post.content"`)}
+	}
+	if v, ok := pc.mutation.Content(); ok {
+		if err := post.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
+		}
+	}
+	if _, ok := pc.mutation.PreviewImage(); !ok {
+		return &ValidationError{Name: "preview_image", err: errors.New(`ent: missing required field "Post.preview_image"`)}
+	}
+	if v, ok := pc.mutation.PreviewImage(); ok {
+		if err := post.PreviewImageValidator(v); err != nil {
+			return &ValidationError{Name: "preview_image", err: fmt.Errorf(`ent: validator failed for field "Post.preview_image": %w`, err)}
+		}
+	}
+	if _, ok := pc.mutation.IsPrivate(); !ok {
+		return &ValidationError{Name: "is_private", err: errors.New(`ent: missing required field "Post.is_private"`)}
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Post.created_at"`)}
+	}
+	if _, ok := pc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Post.updated_at"`)}
+	}
 	return nil
 }
 
@@ -78,6 +242,79 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_node = &Post{config: pc.config}
 		_spec = sqlgraph.NewCreateSpec(post.Table, sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt))
 	)
+	if value, ok := pc.mutation.Title(); ok {
+		_spec.SetField(post.FieldTitle, field.TypeString, value)
+		_node.Title = value
+	}
+	if value, ok := pc.mutation.Content(); ok {
+		_spec.SetField(post.FieldContent, field.TypeString, value)
+		_node.Content = value
+	}
+	if value, ok := pc.mutation.PreviewImage(); ok {
+		_spec.SetField(post.FieldPreviewImage, field.TypeString, value)
+		_node.PreviewImage = value
+	}
+	if value, ok := pc.mutation.IsPrivate(); ok {
+		_spec.SetField(post.FieldIsPrivate, field.TypeBool, value)
+		_node.IsPrivate = value
+	}
+	if value, ok := pc.mutation.CreatedAt(); ok {
+		_spec.SetField(post.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := pc.mutation.UpdatedAt(); ok {
+		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if nodes := pc.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CommentsTable,
+			Columns: []string{post.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.LikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.LikesTable,
+			Columns: []string{post.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   post.AuthorTable,
+			Columns: []string{post.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.author_posts = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -99,6 +336,7 @@ func (pcb *PostCreateBulk) Save(ctx context.Context) ([]*Post, error) {
 	for i := range pcb.builders {
 		func(i int, root context.Context) {
 			builder := pcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PostMutation)
 				if !ok {

@@ -11,6 +11,8 @@ var (
 	// AuthorsColumns holds the columns for the "authors" table.
 	AuthorsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "author_id", Type: field.TypeInt, Unique: true},
+		{Name: "joined_at", Type: field.TypeTime},
 	}
 	// AuthorsTable holds the schema information for the "authors" table.
 	AuthorsTable = &schema.Table{
@@ -21,41 +23,104 @@ var (
 	// CommentsColumns holds the columns for the "comments" table.
 	CommentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "content", Type: field.TypeString, Size: 255},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "author_comments", Type: field.TypeInt, Nullable: true},
+		{Name: "comment_childrens", Type: field.TypeInt, Nullable: true},
+		{Name: "post_comments", Type: field.TypeInt, Nullable: true},
 	}
 	// CommentsTable holds the schema information for the "comments" table.
 	CommentsTable = &schema.Table{
 		Name:       "comments",
 		Columns:    CommentsColumns,
 		PrimaryKey: []*schema.Column{CommentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "comments_authors_comments",
+				Columns:    []*schema.Column{CommentsColumns[4]},
+				RefColumns: []*schema.Column{AuthorsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "comments_comments_childrens",
+				Columns:    []*schema.Column{CommentsColumns[5]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "comments_posts_comments",
+				Columns:    []*schema.Column{CommentsColumns[6]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// LikesColumns holds the columns for the "likes" table.
+	LikesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "author_likes", Type: field.TypeInt, Nullable: true},
+		{Name: "post_likes", Type: field.TypeInt, Nullable: true},
+	}
+	// LikesTable holds the schema information for the "likes" table.
+	LikesTable = &schema.Table{
+		Name:       "likes",
+		Columns:    LikesColumns,
+		PrimaryKey: []*schema.Column{LikesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "likes_authors_likes",
+				Columns:    []*schema.Column{LikesColumns[1]},
+				RefColumns: []*schema.Column{AuthorsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "likes_posts_likes",
+				Columns:    []*schema.Column{LikesColumns[2]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "title", Type: field.TypeString, Size: 255},
+		{Name: "content", Type: field.TypeString, SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "preview_image", Type: field.TypeString, Unique: true, Size: 100},
+		{Name: "is_private", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "author_posts", Type: field.TypeInt, Nullable: true},
 	}
 	// PostsTable holds the schema information for the "posts" table.
 	PostsTable = &schema.Table{
 		Name:       "posts",
 		Columns:    PostsColumns,
 		PrimaryKey: []*schema.Column{PostsColumns[0]},
-	}
-	// VotesColumns holds the columns for the "votes" table.
-	VotesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-	}
-	// VotesTable holds the schema information for the "votes" table.
-	VotesTable = &schema.Table{
-		Name:       "votes",
-		Columns:    VotesColumns,
-		PrimaryKey: []*schema.Column{VotesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "posts_authors_posts",
+				Columns:    []*schema.Column{PostsColumns[7]},
+				RefColumns: []*schema.Column{AuthorsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuthorsTable,
 		CommentsTable,
+		LikesTable,
 		PostsTable,
-		VotesTable,
 	}
 )
 
 func init() {
+	CommentsTable.ForeignKeys[0].RefTable = AuthorsTable
+	CommentsTable.ForeignKeys[1].RefTable = CommentsTable
+	CommentsTable.ForeignKeys[2].RefTable = PostsTable
+	LikesTable.ForeignKeys[0].RefTable = AuthorsTable
+	LikesTable.ForeignKeys[1].RefTable = PostsTable
+	PostsTable.ForeignKeys[0].RefTable = AuthorsTable
 }

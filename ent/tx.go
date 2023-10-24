@@ -16,10 +16,10 @@ type Tx struct {
 	Author *AuthorClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
+	// Like is the client for interacting with the Like builders.
+	Like *LikeClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
-	// Vote is the client for interacting with the Vote builders.
-	Vote *VoteClient
 
 	// lazily loaded.
 	client     *Client
@@ -153,8 +153,8 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Author = NewAuthorClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
+	tx.Like = NewLikeClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
-	tx.Vote = NewVoteClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

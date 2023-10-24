@@ -4,8 +4,12 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"hyphen-hellog/ent/author"
 	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/post"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +22,112 @@ type CommentCreate struct {
 	hooks    []Hook
 }
 
+// SetContent sets the "content" field.
+func (cc *CommentCreate) SetContent(s string) *CommentCreate {
+	cc.mutation.SetContent(s)
+	return cc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (cc *CommentCreate) SetCreatedAt(t time.Time) *CommentCreate {
+	cc.mutation.SetCreatedAt(t)
+	return cc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (cc *CommentCreate) SetNillableCreatedAt(t *time.Time) *CommentCreate {
+	if t != nil {
+		cc.SetCreatedAt(*t)
+	}
+	return cc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cc *CommentCreate) SetUpdatedAt(t time.Time) *CommentCreate {
+	cc.mutation.SetUpdatedAt(t)
+	return cc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (cc *CommentCreate) SetNillableUpdatedAt(t *time.Time) *CommentCreate {
+	if t != nil {
+		cc.SetUpdatedAt(*t)
+	}
+	return cc
+}
+
+// SetParentID sets the "parent" edge to the Comment entity by ID.
+func (cc *CommentCreate) SetParentID(id int) *CommentCreate {
+	cc.mutation.SetParentID(id)
+	return cc
+}
+
+// SetNillableParentID sets the "parent" edge to the Comment entity by ID if the given value is not nil.
+func (cc *CommentCreate) SetNillableParentID(id *int) *CommentCreate {
+	if id != nil {
+		cc = cc.SetParentID(*id)
+	}
+	return cc
+}
+
+// SetParent sets the "parent" edge to the Comment entity.
+func (cc *CommentCreate) SetParent(c *Comment) *CommentCreate {
+	return cc.SetParentID(c.ID)
+}
+
+// AddChildrenIDs adds the "childrens" edge to the Comment entity by IDs.
+func (cc *CommentCreate) AddChildrenIDs(ids ...int) *CommentCreate {
+	cc.mutation.AddChildrenIDs(ids...)
+	return cc
+}
+
+// AddChildrens adds the "childrens" edges to the Comment entity.
+func (cc *CommentCreate) AddChildrens(c ...*Comment) *CommentCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddChildrenIDs(ids...)
+}
+
+// SetPostID sets the "post" edge to the Post entity by ID.
+func (cc *CommentCreate) SetPostID(id int) *CommentCreate {
+	cc.mutation.SetPostID(id)
+	return cc
+}
+
+// SetNillablePostID sets the "post" edge to the Post entity by ID if the given value is not nil.
+func (cc *CommentCreate) SetNillablePostID(id *int) *CommentCreate {
+	if id != nil {
+		cc = cc.SetPostID(*id)
+	}
+	return cc
+}
+
+// SetPost sets the "post" edge to the Post entity.
+func (cc *CommentCreate) SetPost(p *Post) *CommentCreate {
+	return cc.SetPostID(p.ID)
+}
+
+// SetAuthorID sets the "author" edge to the Author entity by ID.
+func (cc *CommentCreate) SetAuthorID(id int) *CommentCreate {
+	cc.mutation.SetAuthorID(id)
+	return cc
+}
+
+// SetNillableAuthorID sets the "author" edge to the Author entity by ID if the given value is not nil.
+func (cc *CommentCreate) SetNillableAuthorID(id *int) *CommentCreate {
+	if id != nil {
+		cc = cc.SetAuthorID(*id)
+	}
+	return cc
+}
+
+// SetAuthor sets the "author" edge to the Author entity.
+func (cc *CommentCreate) SetAuthor(a *Author) *CommentCreate {
+	return cc.SetAuthorID(a.ID)
+}
+
 // Mutation returns the CommentMutation object of the builder.
 func (cc *CommentCreate) Mutation() *CommentMutation {
 	return cc.mutation
@@ -25,6 +135,7 @@ func (cc *CommentCreate) Mutation() *CommentMutation {
 
 // Save creates the Comment in the database.
 func (cc *CommentCreate) Save(ctx context.Context) (*Comment, error) {
+	cc.defaults()
 	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -50,8 +161,34 @@ func (cc *CommentCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cc *CommentCreate) defaults() {
+	if _, ok := cc.mutation.CreatedAt(); !ok {
+		v := comment.DefaultCreatedAt()
+		cc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := cc.mutation.UpdatedAt(); !ok {
+		v := comment.DefaultUpdatedAt()
+		cc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (cc *CommentCreate) check() error {
+	if _, ok := cc.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Comment.content"`)}
+	}
+	if v, ok := cc.mutation.Content(); ok {
+		if err := comment.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Comment.content": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Comment.created_at"`)}
+	}
+	if _, ok := cc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Comment.updated_at"`)}
+	}
 	return nil
 }
 
@@ -78,6 +215,85 @@ func (cc *CommentCreate) createSpec() (*Comment, *sqlgraph.CreateSpec) {
 		_node = &Comment{config: cc.config}
 		_spec = sqlgraph.NewCreateSpec(comment.Table, sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt))
 	)
+	if value, ok := cc.mutation.Content(); ok {
+		_spec.SetField(comment.FieldContent, field.TypeString, value)
+		_node.Content = value
+	}
+	if value, ok := cc.mutation.CreatedAt(); ok {
+		_spec.SetField(comment.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := cc.mutation.UpdatedAt(); ok {
+		_spec.SetField(comment.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if nodes := cc.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ParentTable,
+			Columns: []string{comment.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.comment_childrens = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.ChildrensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.ChildrensTable,
+			Columns: []string{comment.ChildrensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.PostIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.PostTable,
+			Columns: []string{comment.PostColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.post_comments = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(author.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.author_comments = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -99,6 +315,7 @@ func (ccb *CommentCreateBulk) Save(ctx context.Context) ([]*Comment, error) {
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CommentMutation)
 				if !ok {

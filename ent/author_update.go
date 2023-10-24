@@ -7,7 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"hyphen-hellog/ent/author"
+	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/like"
+	"hyphen-hellog/ent/post"
 	"hyphen-hellog/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,9 +31,144 @@ func (au *AuthorUpdate) Where(ps ...predicate.Author) *AuthorUpdate {
 	return au
 }
 
+// SetAuthorID sets the "author_id" field.
+func (au *AuthorUpdate) SetAuthorID(i int) *AuthorUpdate {
+	au.mutation.ResetAuthorID()
+	au.mutation.SetAuthorID(i)
+	return au
+}
+
+// AddAuthorID adds i to the "author_id" field.
+func (au *AuthorUpdate) AddAuthorID(i int) *AuthorUpdate {
+	au.mutation.AddAuthorID(i)
+	return au
+}
+
+// SetJoinedAt sets the "joined_at" field.
+func (au *AuthorUpdate) SetJoinedAt(t time.Time) *AuthorUpdate {
+	au.mutation.SetJoinedAt(t)
+	return au
+}
+
+// SetNillableJoinedAt sets the "joined_at" field if the given value is not nil.
+func (au *AuthorUpdate) SetNillableJoinedAt(t *time.Time) *AuthorUpdate {
+	if t != nil {
+		au.SetJoinedAt(*t)
+	}
+	return au
+}
+
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (au *AuthorUpdate) AddPostIDs(ids ...int) *AuthorUpdate {
+	au.mutation.AddPostIDs(ids...)
+	return au
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (au *AuthorUpdate) AddPosts(p ...*Post) *AuthorUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return au.AddPostIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (au *AuthorUpdate) AddCommentIDs(ids ...int) *AuthorUpdate {
+	au.mutation.AddCommentIDs(ids...)
+	return au
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (au *AuthorUpdate) AddComments(c ...*Comment) *AuthorUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.AddCommentIDs(ids...)
+}
+
+// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+func (au *AuthorUpdate) AddLikeIDs(ids ...int) *AuthorUpdate {
+	au.mutation.AddLikeIDs(ids...)
+	return au
+}
+
+// AddLikes adds the "likes" edges to the Like entity.
+func (au *AuthorUpdate) AddLikes(l ...*Like) *AuthorUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return au.AddLikeIDs(ids...)
+}
+
 // Mutation returns the AuthorMutation object of the builder.
 func (au *AuthorUpdate) Mutation() *AuthorMutation {
 	return au.mutation
+}
+
+// ClearPosts clears all "posts" edges to the Post entity.
+func (au *AuthorUpdate) ClearPosts() *AuthorUpdate {
+	au.mutation.ClearPosts()
+	return au
+}
+
+// RemovePostIDs removes the "posts" edge to Post entities by IDs.
+func (au *AuthorUpdate) RemovePostIDs(ids ...int) *AuthorUpdate {
+	au.mutation.RemovePostIDs(ids...)
+	return au
+}
+
+// RemovePosts removes "posts" edges to Post entities.
+func (au *AuthorUpdate) RemovePosts(p ...*Post) *AuthorUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return au.RemovePostIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (au *AuthorUpdate) ClearComments() *AuthorUpdate {
+	au.mutation.ClearComments()
+	return au
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (au *AuthorUpdate) RemoveCommentIDs(ids ...int) *AuthorUpdate {
+	au.mutation.RemoveCommentIDs(ids...)
+	return au
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (au *AuthorUpdate) RemoveComments(c ...*Comment) *AuthorUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.RemoveCommentIDs(ids...)
+}
+
+// ClearLikes clears all "likes" edges to the Like entity.
+func (au *AuthorUpdate) ClearLikes() *AuthorUpdate {
+	au.mutation.ClearLikes()
+	return au
+}
+
+// RemoveLikeIDs removes the "likes" edge to Like entities by IDs.
+func (au *AuthorUpdate) RemoveLikeIDs(ids ...int) *AuthorUpdate {
+	au.mutation.RemoveLikeIDs(ids...)
+	return au
+}
+
+// RemoveLikes removes "likes" edges to Like entities.
+func (au *AuthorUpdate) RemoveLikes(l ...*Like) *AuthorUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return au.RemoveLikeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -68,6 +207,150 @@ func (au *AuthorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := au.mutation.AuthorID(); ok {
+		_spec.SetField(author.FieldAuthorID, field.TypeInt, value)
+	}
+	if value, ok := au.mutation.AddedAuthorID(); ok {
+		_spec.AddField(author.FieldAuthorID, field.TypeInt, value)
+	}
+	if value, ok := au.mutation.JoinedAt(); ok {
+		_spec.SetField(author.FieldJoinedAt, field.TypeTime, value)
+	}
+	if au.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedPostsIDs(); len(nodes) > 0 && !au.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !au.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.LikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedLikesIDs(); len(nodes) > 0 && !au.mutation.LikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.LikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{author.Label}
@@ -88,9 +371,144 @@ type AuthorUpdateOne struct {
 	mutation *AuthorMutation
 }
 
+// SetAuthorID sets the "author_id" field.
+func (auo *AuthorUpdateOne) SetAuthorID(i int) *AuthorUpdateOne {
+	auo.mutation.ResetAuthorID()
+	auo.mutation.SetAuthorID(i)
+	return auo
+}
+
+// AddAuthorID adds i to the "author_id" field.
+func (auo *AuthorUpdateOne) AddAuthorID(i int) *AuthorUpdateOne {
+	auo.mutation.AddAuthorID(i)
+	return auo
+}
+
+// SetJoinedAt sets the "joined_at" field.
+func (auo *AuthorUpdateOne) SetJoinedAt(t time.Time) *AuthorUpdateOne {
+	auo.mutation.SetJoinedAt(t)
+	return auo
+}
+
+// SetNillableJoinedAt sets the "joined_at" field if the given value is not nil.
+func (auo *AuthorUpdateOne) SetNillableJoinedAt(t *time.Time) *AuthorUpdateOne {
+	if t != nil {
+		auo.SetJoinedAt(*t)
+	}
+	return auo
+}
+
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (auo *AuthorUpdateOne) AddPostIDs(ids ...int) *AuthorUpdateOne {
+	auo.mutation.AddPostIDs(ids...)
+	return auo
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (auo *AuthorUpdateOne) AddPosts(p ...*Post) *AuthorUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return auo.AddPostIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (auo *AuthorUpdateOne) AddCommentIDs(ids ...int) *AuthorUpdateOne {
+	auo.mutation.AddCommentIDs(ids...)
+	return auo
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (auo *AuthorUpdateOne) AddComments(c ...*Comment) *AuthorUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.AddCommentIDs(ids...)
+}
+
+// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+func (auo *AuthorUpdateOne) AddLikeIDs(ids ...int) *AuthorUpdateOne {
+	auo.mutation.AddLikeIDs(ids...)
+	return auo
+}
+
+// AddLikes adds the "likes" edges to the Like entity.
+func (auo *AuthorUpdateOne) AddLikes(l ...*Like) *AuthorUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return auo.AddLikeIDs(ids...)
+}
+
 // Mutation returns the AuthorMutation object of the builder.
 func (auo *AuthorUpdateOne) Mutation() *AuthorMutation {
 	return auo.mutation
+}
+
+// ClearPosts clears all "posts" edges to the Post entity.
+func (auo *AuthorUpdateOne) ClearPosts() *AuthorUpdateOne {
+	auo.mutation.ClearPosts()
+	return auo
+}
+
+// RemovePostIDs removes the "posts" edge to Post entities by IDs.
+func (auo *AuthorUpdateOne) RemovePostIDs(ids ...int) *AuthorUpdateOne {
+	auo.mutation.RemovePostIDs(ids...)
+	return auo
+}
+
+// RemovePosts removes "posts" edges to Post entities.
+func (auo *AuthorUpdateOne) RemovePosts(p ...*Post) *AuthorUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return auo.RemovePostIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (auo *AuthorUpdateOne) ClearComments() *AuthorUpdateOne {
+	auo.mutation.ClearComments()
+	return auo
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (auo *AuthorUpdateOne) RemoveCommentIDs(ids ...int) *AuthorUpdateOne {
+	auo.mutation.RemoveCommentIDs(ids...)
+	return auo
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (auo *AuthorUpdateOne) RemoveComments(c ...*Comment) *AuthorUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.RemoveCommentIDs(ids...)
+}
+
+// ClearLikes clears all "likes" edges to the Like entity.
+func (auo *AuthorUpdateOne) ClearLikes() *AuthorUpdateOne {
+	auo.mutation.ClearLikes()
+	return auo
+}
+
+// RemoveLikeIDs removes the "likes" edge to Like entities by IDs.
+func (auo *AuthorUpdateOne) RemoveLikeIDs(ids ...int) *AuthorUpdateOne {
+	auo.mutation.RemoveLikeIDs(ids...)
+	return auo
+}
+
+// RemoveLikes removes "likes" edges to Like entities.
+func (auo *AuthorUpdateOne) RemoveLikes(l ...*Like) *AuthorUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return auo.RemoveLikeIDs(ids...)
 }
 
 // Where appends a list predicates to the AuthorUpdate builder.
@@ -158,6 +576,150 @@ func (auo *AuthorUpdateOne) sqlSave(ctx context.Context) (_node *Author, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := auo.mutation.AuthorID(); ok {
+		_spec.SetField(author.FieldAuthorID, field.TypeInt, value)
+	}
+	if value, ok := auo.mutation.AddedAuthorID(); ok {
+		_spec.AddField(author.FieldAuthorID, field.TypeInt, value)
+	}
+	if value, ok := auo.mutation.JoinedAt(); ok {
+		_spec.SetField(author.FieldJoinedAt, field.TypeTime, value)
+	}
+	if auo.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedPostsIDs(); len(nodes) > 0 && !auo.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.PostsTable,
+			Columns: []string{author.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !auo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.CommentsTable,
+			Columns: []string{author.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.LikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedLikesIDs(); len(nodes) > 0 && !auo.mutation.LikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.LikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   author.LikesTable,
+			Columns: []string{author.LikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Author{config: auo.config}
 	_spec.Assign = _node.assignValues
