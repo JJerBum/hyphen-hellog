@@ -87,6 +87,13 @@ func (d *databaseType) GetAuthorXByAuthorID(ctx context.Context, authorID int) *
 		OnlyX(ctx)
 }
 
+func (d *databaseType) GetAuthorByAuthorID(ctx context.Context, authorID int) (*ent.Author, error) {
+	return d.Author.
+		Query().
+		Where(author.AuthorID(authorID)).
+		Only(ctx)
+}
+
 // GetAuthor 함수는 ctx, ID를 매개변수로 받아 값을 조회하는 함수 입니다.
 func (d *databaseType) GetAuthor(ctx context.Context, ID int) (*ent.Author, error) {
 	return d.Author.Get(ctx, ID)
