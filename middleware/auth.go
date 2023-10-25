@@ -19,7 +19,7 @@ func Auth(c *fiber.Ctx) error {
 	// 없는 유저라면
 	if err != nil {
 		// 사용자 등록하기
-		author = database.New().CreateAuthor(c.Context(), &ent.Author{AuthorID: response.Data})
+		author = database.New().CreateAuthorX(c.Context(), &ent.Author{AuthorID: response.Data})
 	}
 
 	// local로 저장

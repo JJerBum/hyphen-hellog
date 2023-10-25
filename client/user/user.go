@@ -60,6 +60,10 @@ func Validate(token string) *response.GetUserValidate {
 	body, err := io.ReadAll(resp.Body)
 	exception.Sniff(err)
 
+	if len(body) == 0 {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
 	err = json.Unmarshal(body, userValidateModel)
 	exception.Sniff(err)
 

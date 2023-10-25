@@ -3,6 +3,7 @@ package request
 import (
 	"hyphen-hellog/cerrors"
 	"mime/multipart"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -25,6 +26,21 @@ func (c *CreatePost) Parse(ctx *fiber.Ctx) *CreatePost {
 	c.IsPrivate = ctx.FormValue("is_private") == "true"
 	c.PreviewImage, err = ctx.FormFile("preview_image")
 
+	if err != nil {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return c
+}
+
+type GetPost struct {
+	PostID int `json:"post_id"`
+}
+
+func (c *GetPost) Parse(ctx *fiber.Ctx) *GetPost {
+	var err error
+
+	c.PostID, err = strconv.Atoi(ctx.Params("post_id"))
 	if err != nil {
 		panic(cerrors.ErrInvalidRequest)
 	}

@@ -36,7 +36,7 @@ func main() {
 		clientRequest := new(request.CreatePost).Parse(c)
 		verifier.Validate(c)
 
-		database.New().CreatePost(c.Context(),
+		database.New().CreatePostX(c.Context(),
 			&ent.Post{
 				Title:        clientRequest.Title,
 				Content:      clientRequest.Content,
@@ -72,8 +72,22 @@ func main() {
 	})
 
 	api.Get("/:post_id", func(c *fiber.Ctx) error {
-		return nil
+		clientRequest := new(request.GetPost).Parse(c)
+		verifier.Validate(c)
+
+		post := database.New().GetPostX(c.Context(), clientRequest.PostID)
+		author := database.New().GetAuthorXByPostID(c.Context(), post.ID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data: response.GetPost{
+				Post:   post,
+				Author: author,
+			},
+		})
 	})
+
 	api.Get("/:post_id/comments", func(c *fiber.Ctx) error {
 		return nil
 	})

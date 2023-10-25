@@ -5,6 +5,7 @@ import (
 	"hyphen-hellog/cerrors/exception"
 	"hyphen-hellog/ent"
 	"hyphen-hellog/ent/author"
+	"hyphen-hellog/ent/post"
 	"log"
 	"math/rand"
 	"strconv"
@@ -67,7 +68,7 @@ func New() *databaseType {
 
 // PostAuthor 함수는 ctx, author를 매개변수로 받아 값을 저장하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) CreateAuthor(ctx context.Context, author *ent.Author) *ent.Author {
+func (d *databaseType) CreateAuthorX(ctx context.Context, author *ent.Author) *ent.Author {
 	return d.Author.Create().
 		SetAuthorID(author.AuthorID).
 		SaveX(ctx)
@@ -99,9 +100,16 @@ func (d *databaseType) GetAuthor(ctx context.Context, ID int) (*ent.Author, erro
 	return d.Author.Get(ctx, ID)
 }
 
+func (d *databaseType) GetAuthorXByPostID(ctx context.Context, postID int) *ent.Author {
+	return d.Author.
+		Query().
+		Where(author.HasPostsWith(post.ID(postID))).
+		OnlyX(ctx)
+}
+
 // UpdateAuthor 함수는 ctx, ID, author를 매개변수로 받아 값을 갱신하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) UpdateAuthor(ctx context.Context, author *ent.Author) *ent.Author {
+func (d *databaseType) UpdateAuthorX(ctx context.Context, author *ent.Author) *ent.Author {
 	return d.Author.UpdateOneID(author.ID).
 		SetAuthorID(author.AuthorID).
 		SaveX(ctx)
@@ -109,14 +117,14 @@ func (d *databaseType) UpdateAuthor(ctx context.Context, author *ent.Author) *en
 
 // DeleteAuthor 함수는 ctx, ID를 매개변수로 받아 값을 삭제하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) DeleteAuthor(ctx context.Context, ID int) {
+func (d *databaseType) DeleteAuthorX(ctx context.Context, ID int) {
 	d.Author.DeleteOneID(ID).
 		ExecX(ctx)
 }
 
 // CreateAuthor 함수는 ctx, post, authorID를 매개변수로 받아 데이터베이스 값을 저장하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) CreatePost(ctx context.Context, post *ent.Post, authorID int) *ent.Post {
+func (d *databaseType) CreatePostX(ctx context.Context, post *ent.Post, authorID int) *ent.Post {
 	return d.Post.Create().
 		SetTitle(post.Title).
 		SetContent(post.Content).
@@ -128,9 +136,13 @@ func (d *databaseType) CreatePost(ctx context.Context, post *ent.Post, authorID 
 
 // GetPost 함수는 ctx, ID를 매개변수로 받아 값을 조회하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) GetPost(ctx context.Context, ID int) *ent.Post {
+func (d *databaseType) GetPostX(ctx context.Context, ID int) *ent.Post {
 	return d.Post.
 		GetX(ctx, ID)
+}
+
+func (d *databaseType) GetPostXByAuthorID(ctx context.Context, authorID int) *ent.Author {
+	return d.Post.Query().QueryAuthor().FirstX(ctx)
 }
 
 // CreateAuthor 함수는 ctx, post, authorID를 매개변수로 받아 데이터베이스 값을 갱신하 함수 입니다.
