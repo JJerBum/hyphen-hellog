@@ -14,7 +14,8 @@ func Auth(c *fiber.Ctx) error {
 	response := user.Validate(c.Get("Authorization"))
 
 	// 이미 있는 사용자 인가?
-	author, err := database.New().GetAuthor(c.Context(), response.Data)
+	author, err := database.New().GetAuthorByAuthorID(c.Context(), response.Data)
+
 	// 없는 유저라면
 	if err != nil {
 		// 사용자 등록하기
