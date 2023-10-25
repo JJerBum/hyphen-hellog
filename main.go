@@ -27,10 +27,12 @@ func init() {
 func main() {
 	app := fiber.New(fiber.Config{})
 	// app.Use(recover.New())
+	app.Use(middleware.Auth)
 
 	api := app.Group("/api/hellog")
 
-	api.Post("/post", middleware.Auth, func(c *fiber.Ctx) (err error) {
+	// 완
+	api.Post("/post", func(c *fiber.Ctx) (err error) {
 		clientRequest := new(request.CreatePost).Parse(c)
 		verifier.Validate(c)
 
@@ -51,7 +53,22 @@ func main() {
 	})
 
 	api.Post("/:post_id/comment", func(c *fiber.Ctx) error {
-		return nil
+		clientRequest := new(request.CreateComment).Parse(c)
+		verifier.Validate(c)
+
+		database.New().CreateComment(c.Context(),
+			&ent.Comment{
+				Content: clientRequest.Content,
+			},
+			clientRequest.ParentID,
+			clientRequest.PostID,
+			c.Locals("user").(*ent.Author).ID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
 
 	api.Get("/:post_id", func(c *fiber.Ctx) error {

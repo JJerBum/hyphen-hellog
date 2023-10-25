@@ -1,9 +1,7 @@
 package request
 
 import (
-	"context"
 	"hyphen-hellog/cerrors"
-	"hyphen-hellog/ent"
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,14 +30,4 @@ func (c *CreatePost) Parse(ctx *fiber.Ctx) *CreatePost {
 	}
 
 	return c
-}
-
-func (c *CreatePost) Create(client *ent.Client, ctx context.Context, post *ent.Post, authorID int) {
-	client.Post.Create().
-		SetTitle(post.Title).
-		SetContent(post.Content).
-		SetPreviewImage(post.PreviewImage).
-		SetIsPrivate(post.IsPrivate).
-		SetAuthorID(authorID).
-		SaveX(ctx)
 }
