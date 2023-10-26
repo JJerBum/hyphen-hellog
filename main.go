@@ -180,18 +180,31 @@ func main() {
 		})
 	})
 
-	api.Patch("/:post_id/unliked", func(c *fiber.Ctx) error {
+	api.Patch("/posts/:post_id/unliked", func(c *fiber.Ctx) error {
 		return nil
 	})
 
-	api.Patch("/:post_id/liked", func(c *fiber.Ctx) error {
+	api.Patch("/posts/:post_id/liked", func(c *fiber.Ctx) error {
 		return nil
 	})
 
-	api.Delete("/:post_id", func(c *fiber.Ctx) error {
-		return nil
+	api.Delete("/posts/:post_id", func(c *fiber.Ctx) error {
+		clientRequest := new(request.DeletePost).Parse(c)
+
+		if database.New().GetAuthorXByPostID(c.Context(), clientRequest.PostID).ID != c.Locals("user").(*ent.Author).ID {
+			panic("잘못된 접근 입니다. (해당 사용자는 해당 포스트를 삭제할 수 없습니다.)")
+		}
+
+		database.New().DeletePostX(c.Context(), clientRequest.PostID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
-	api.Delete("/:post_id/comment", func(c *fiber.Ctx) error {
+
+	api.Delete("/posts/comments/comment", func(c *fiber.Ctx) error {
 		return nil
 	})
 

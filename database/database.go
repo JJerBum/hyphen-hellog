@@ -180,7 +180,7 @@ func (d *databaseType) UpdatePostX(ctx context.Context, post *ent.Post, authorID
 		SaveX(ctx)
 }
 
-func (d *databaseType) DeletePost(ctx context.Context, ID int) {
+func (d *databaseType) DeletePostX(ctx context.Context, ID int) {
 	d.Post.DeleteOneID(ID).
 		ExecX(ctx)
 }

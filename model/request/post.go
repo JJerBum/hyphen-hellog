@@ -69,3 +69,19 @@ func (u *UpdatePost) Parse(ctx *fiber.Ctx) *UpdatePost {
 
 	return u
 }
+
+type DeletePost struct {
+	PostID int
+}
+
+func (d *DeletePost) Parse(ctx *fiber.Ctx) *DeletePost {
+	var err error
+
+	d.PostID, err = strconv.Atoi(ctx.Params("post_id"))
+
+	if err != nil {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return d
+}
