@@ -170,7 +170,7 @@ func (d *databaseType) GetPostX(ctx context.Context, ID int) *ent.Post {
 
 // CreateAuthor 함수는 ctx, post, authorID를 매개변수로 받아 데이터베이스 값을 갱신하 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) UpdatePost(ctx context.Context, post *ent.Post, authorID int) *ent.Post {
+func (d *databaseType) UpdatePostX(ctx context.Context, post *ent.Post, authorID int) *ent.Post {
 	return d.Post.UpdateOneID(post.ID).
 		SetTitle(post.Title).
 		SetContent(post.Content).
@@ -209,17 +209,11 @@ func (d *databaseType) GetCommentX(ctx context.Context, ID int) *ent.Comment {
 // CreateComment 함수는 ctx, comment, parentCommentID, postID, authorID를 매개변수로 받아 데이터 값을 갱신합니다.
 // parentIDComment 값을 -1 이하의 값으로 전달 할 경우 null의 값으로 저장됩니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) UpdateCommentX(ctx context.Context, comment *ent.Comment, parentCommentID int, postID int, authorID int) *ent.Comment {
-	temp := d.Comment.UpdateOneID(comment.ID).
+func (d *databaseType) UpdateCommentX(ctx context.Context, comment *ent.Comment) *ent.Comment {
+	return d.Comment.UpdateOneID(comment.ID).
 		SetContent(comment.Content).
-		SetPostID(postID).
-		SetAuthorID(authorID)
+		SaveX(ctx)
 
-	if parentCommentID > 0 {
-		temp = temp.SetParentID(parentCommentID)
-	}
-
-	return temp.SaveX(ctx)
 }
 
 // DeleteComment 함수는 ctx, ID를 매개변수로 받아 값을 삭제합니다.

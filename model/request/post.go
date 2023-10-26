@@ -47,3 +47,25 @@ func (c *GetPost) Parse(ctx *fiber.Ctx) *GetPost {
 
 	return c
 }
+
+type UpdatePost struct {
+	Title        string                `form:"title"  validate:"required"`
+	Content      string                `form:"content" validate:"required"`
+	PreviewImage *multipart.FileHeader `form:"preview_image" validate:"required"`
+	IsPrivate    bool                  `form:"is_private" validate:"boolean"`
+	PostID       int                   `json:"post_id"`
+}
+
+func (u *UpdatePost) Parse(ctx *fiber.Ctx) *UpdatePost {
+	var err error
+
+	err = ctx.BodyParser(u)
+	u.PostID, err = strconv.Atoi(ctx.Params("post_id"))
+	u.PreviewImage, err = ctx.FormFile("preview_image")
+
+	if err != nil {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return u
+}

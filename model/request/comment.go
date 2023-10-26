@@ -46,3 +46,20 @@ func (g *GetComments) Parse(ctx *fiber.Ctx) *GetComments {
 
 	return g
 }
+
+type UpdateComment struct {
+	CommentID int    `json:"comment_id"`
+	Content   string `json:"content"`
+}
+
+func (u *UpdateComment) Parse(ctx *fiber.Ctx) *UpdateComment {
+	var err error
+
+	err = ctx.BodyParser(u)
+
+	if err != nil {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return u
+}

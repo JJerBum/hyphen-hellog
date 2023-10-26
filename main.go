@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"hyphen-hellog/client/siss"
 	"hyphen-hellog/database"
 	"hyphen-hellog/ent"
@@ -32,7 +33,7 @@ func main() {
 	api := app.Group("/api/hellog")
 
 	// 완
-	api.Post("/post", func(c *fiber.Ctx) (err error) {
+	api.Post("/posts/post", func(c *fiber.Ctx) (err error) {
 		clientRequest := new(request.CreatePost).Parse(c)
 		verifier.Validate(c)
 
@@ -52,7 +53,7 @@ func main() {
 		})
 	})
 
-	api.Post("/:post_id/comment", func(c *fiber.Ctx) error {
+	api.Post("/posts/:post_id/comments/comment", func(c *fiber.Ctx) error {
 		clientRequest := new(request.CreateComment).Parse(c)
 		verifier.Validate(c)
 
@@ -71,7 +72,7 @@ func main() {
 		})
 	})
 
-	api.Get("/:post_id", func(c *fiber.Ctx) error {
+	api.Get("/posts/:post_id", func(c *fiber.Ctx) error {
 		clientRequest := new(request.GetPost).Parse(c)
 		verifier.Validate(c)
 
@@ -88,7 +89,7 @@ func main() {
 		})
 	})
 
-	api.Get("/:post_id/comments", func(c *fiber.Ctx) error {
+	api.Get("posts/:post_id/comments", func(c *fiber.Ctx) error {
 		clientRequest := new(request.GetComments).Parse(c)
 		verifier.Validate(c)
 
@@ -129,16 +130,60 @@ func main() {
 		})
 	})
 
-	api.Patch("/:post_id", func(c *fiber.Ctx) error {
-		return nil
+	api.Patch("/posts/:post_id", func(c *fiber.Ctx) error {
+		clientRequest := new(request.UpdatePost).Parse(c)
+		verifier.Validate(c)
+
+		if database.New().GetAuthorXByPostID(c.Context(), clientRequest.PostID).ID != c.Locals("user").(*ent.Author).ID {
+			panic("잘못된 접근 입니다. (해당 사용자는 해당 포스트를 변경할 수 없습니다.)")
+		}
+
+		// 왼래 있었던 이미지 삭제
+		siss.DeleteImage(database.New().GetPostX(c.Context(), clientRequest.PostID).PreviewImage)
+
+		// 업데이트
+		database.New().UpdatePostX(c.Context(),
+			&ent.Post{
+				ID:           clientRequest.PostID,
+				Title:        clientRequest.Title,
+				Content:      clientRequest.Content,
+				PreviewImage: siss.CreateImage(clientRequest.PreviewImage),
+				IsPrivate:    clientRequest.IsPrivate,
+			},
+			c.Locals("user").(*ent.Author).ID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
 
-	api.Patch("/:post_id/comment", func(c *fiber.Ctx) error {
-		return nil
+	api.Patch("/posts/comments/comment", func(c *fiber.Ctx) error {
+		clientRequest := new(request.UpdateComment).Parse(c)
+
+		fmt.Println(clientRequest)
+		// 이 사람이 접근해도 되는 사람인가?
+		if database.New().GetAuthorXByCommentID(c.Context(), clientRequest.CommentID).ID != c.Locals("user").(*ent.Author).ID {
+			panic("잘못된 접근 입니다. 이 사용자는 이 댓글의 주인이 아닙니다.")
+		}
+
+		database.New().UpdateCommentX(c.Context(), &ent.Comment{
+			ID:      clientRequest.CommentID,
+			Content: clientRequest.Content,
+		})
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
+
 	api.Patch("/:post_id/unliked", func(c *fiber.Ctx) error {
 		return nil
 	})
+
 	api.Patch("/:post_id/liked", func(c *fiber.Ctx) error {
 		return nil
 	})
