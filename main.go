@@ -56,7 +56,7 @@ func main() {
 		clientRequest := new(request.CreateComment).Parse(c)
 		verifier.Validate(c)
 
-		database.New().CreateComment(c.Context(),
+		database.New().CreateCommentX(c.Context(),
 			&ent.Comment{
 				Content: clientRequest.Content,
 			},
@@ -89,12 +89,50 @@ func main() {
 	})
 
 	api.Get("/:post_id/comments", func(c *fiber.Ctx) error {
-		return nil
+		clientRequest := new(request.GetComments).Parse(c)
+		verifier.Validate(c)
+
+		r := response.GetComments{}
+		post := database.New().GetPostX(c.Context(), clientRequest.PostID)
+		commentParents := database.New().GetCommentParentXByPost(c.Context(), post)
+
+		// 한 포스트의 상위 댓글 loop
+		for _, commentParent := range commentParents {
+
+			// 상위 댓글의 하위 댓글들 추출
+			commentChilds := database.New().GetCommentChildrenXByComment(c.Context(), commentParent)
+
+			// 하위 댓글을 담을 변수
+			newCommentChild := []response.CommentOfComment{}
+
+			// 하위 댓글을 loop
+			for _, commentChild := range commentChilds {
+				// 값을 저장
+				newCommentChild = append(newCommentChild, response.CommentOfComment{
+					Comment: commentChild,
+					Author:  database.New().GetAuthorXByCommentID(c.Context(), commentChild.ID),
+				})
+			}
+
+			// Comments 저장
+			r.Comments = append(r.Comments, response.Comment{
+				Comment:          commentParent,
+				Author:           database.New().GetAuthorXByCommentID(c.Context(), commentParent.ID),
+				CommentOfComment: newCommentChild,
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data:    r,
+		})
 	})
 
 	api.Patch("/:post_id", func(c *fiber.Ctx) error {
 		return nil
 	})
+
 	api.Patch("/:post_id/comment", func(c *fiber.Ctx) error {
 		return nil
 	})

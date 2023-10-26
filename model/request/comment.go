@@ -28,3 +28,21 @@ func (c *CreateComment) Parse(ctx *fiber.Ctx) *CreateComment {
 
 	return c
 }
+
+// GetComments 클라이언트로부터 요청된 바디 값과 매핑되는 구조체 입니다.
+// PostID는 Params() 함수를 이용해야 합니다.
+type GetComments struct {
+	PostID int `json:"post_id"`
+}
+
+func (g *GetComments) Parse(ctx *fiber.Ctx) *GetComments {
+	var err error
+
+	g.PostID, err = strconv.Atoi(ctx.Params("post_id"))
+
+	if err != nil {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return g
+}

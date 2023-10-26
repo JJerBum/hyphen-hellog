@@ -5,6 +5,7 @@ import (
 	"hyphen-hellog/cerrors/exception"
 	"hyphen-hellog/ent"
 	"hyphen-hellog/ent/author"
+	"hyphen-hellog/ent/comment"
 	"hyphen-hellog/ent/post"
 	"log"
 	"math/rand"
@@ -107,6 +108,28 @@ func (d *databaseType) GetAuthorXByPostID(ctx context.Context, postID int) *ent.
 		OnlyX(ctx)
 }
 
+func (d *databaseType) GetAuthorXByCommentID(ctx context.Context, commentID int) *ent.Author {
+	return d.Author.
+		Query().
+		Where(author.HasCommentsWith(comment.ID(commentID))).
+		OnlyX(ctx)
+}
+
+func (d *databaseType) GetCommentsXByPostID(ctx context.Context, postID int) []*ent.Comment {
+	return d.Comment.
+		Query().
+		Where(comment.HasPostWith(post.ID(postID))).
+		AllX(ctx)
+}
+
+func (d *databaseType) GetCommentChildrenXByComment(ctx context.Context, comment *ent.Comment) []*ent.Comment {
+	return comment.QueryChildrens().AllX(ctx)
+}
+
+func (d *databaseType) GetCommentParentXByPost(ctx context.Context, post *ent.Post) []*ent.Comment {
+	return post.QueryComments().Where(comment.Not(comment.HasParent())).AllX(ctx)
+}
+
 // UpdateAuthor 함수는 ctx, ID, author를 매개변수로 받아 값을 갱신하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
 func (d *databaseType) UpdateAuthorX(ctx context.Context, author *ent.Author) *ent.Author {
@@ -141,9 +164,9 @@ func (d *databaseType) GetPostX(ctx context.Context, ID int) *ent.Post {
 		GetX(ctx, ID)
 }
 
-func (d *databaseType) GetPostXByAuthorID(ctx context.Context, authorID int) *ent.Author {
-	return d.Post.Query().QueryAuthor().FirstX(ctx)
-}
+// func (d *databaseType) GetAuthor(ctx context.Context) *ent.Author {
+// 	return d.Post.Query().QueryAuthor().Where()
+// }
 
 // CreateAuthor 함수는 ctx, post, authorID를 매개변수로 받아 데이터베이스 값을 갱신하 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
@@ -165,7 +188,7 @@ func (d *databaseType) DeletePost(ctx context.Context, ID int) {
 // CreateComment 함수는 ctx, comment, parentCommentID, postID, authorID를 매개변수로 받아 데이터 값을 저장합니다.
 // parentIDComment 값을 -1 이하의 값으로 전달 할 경우 null의 값으로 저장됩니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) CreateComment(ctx context.Context, comment *ent.Comment, parentCommentID int, postID int, authorID int) *ent.Comment {
+func (d *databaseType) CreateCommentX(ctx context.Context, comment *ent.Comment, parentCommentID int, postID int, authorID int) *ent.Comment {
 	temp := d.Comment.Create().
 		SetContent(comment.Content).
 		SetPostID(postID).
@@ -178,7 +201,7 @@ func (d *databaseType) CreateComment(ctx context.Context, comment *ent.Comment, 
 	return temp.SaveX(ctx)
 }
 
-func (d *databaseType) GetComment(ctx context.Context, ID int) *ent.Comment {
+func (d *databaseType) GetCommentX(ctx context.Context, ID int) *ent.Comment {
 	return d.Comment.
 		GetX(ctx, ID)
 }
@@ -186,7 +209,7 @@ func (d *databaseType) GetComment(ctx context.Context, ID int) *ent.Comment {
 // CreateComment 함수는 ctx, comment, parentCommentID, postID, authorID를 매개변수로 받아 데이터 값을 갱신합니다.
 // parentIDComment 값을 -1 이하의 값으로 전달 할 경우 null의 값으로 저장됩니다.
 // 에러가 발생하면 패닉이 발생됩니다.
-func (d *databaseType) UpdateComment(ctx context.Context, comment *ent.Comment, parentCommentID int, postID int, authorID int) *ent.Comment {
+func (d *databaseType) UpdateCommentX(ctx context.Context, comment *ent.Comment, parentCommentID int, postID int, authorID int) *ent.Comment {
 	temp := d.Comment.UpdateOneID(comment.ID).
 		SetContent(comment.Content).
 		SetPostID(postID).
@@ -200,7 +223,7 @@ func (d *databaseType) UpdateComment(ctx context.Context, comment *ent.Comment, 
 }
 
 // DeleteComment 함수는 ctx, ID를 매개변수로 받아 값을 삭제합니다.
-func (d *databaseType) DeleteComment(ctx context.Context, ID int) {
+func (d *databaseType) DeleteCommentX(ctx context.Context, ID int) {
 	d.Comment.DeleteOneID(ID).
 		ExecX(ctx)
 }
