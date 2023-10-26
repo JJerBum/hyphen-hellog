@@ -63,3 +63,19 @@ func (u *UpdateComment) Parse(ctx *fiber.Ctx) *UpdateComment {
 
 	return u
 }
+
+type DeleteComment struct {
+	CommentID int `json:"comment_id"`
+}
+
+func (d *DeleteComment) Parse(ctx *fiber.Ctx) *DeleteComment {
+	var err error
+
+	err = ctx.BodyParser(d)
+
+	if err != nil {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return d
+}

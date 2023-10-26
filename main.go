@@ -14,6 +14,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var port string
@@ -27,7 +28,7 @@ func init() {
 
 func main() {
 	app := fiber.New(fiber.Config{})
-	// app.Use(recover.New())
+	app.Use(recover.New())
 	app.Use(middleware.Auth)
 
 	api := app.Group("/api/hellog")
@@ -205,7 +206,20 @@ func main() {
 	})
 
 	api.Delete("/posts/comments/comment", func(c *fiber.Ctx) error {
-		return nil
+		clientRequest := new(request.DeleteComment).Parse(c)
+
+		// 이 사람이 접근해도 되는 사람인가?
+		if database.New().GetAuthorXByCommentID(c.Context(), clientRequest.CommentID).ID != c.Locals("user").(*ent.Author).ID {
+			panic("잘못된 접근 입니다. 이 사용자는 이 댓글의 주인이 아닙니다.")
+		}
+
+		database.New().DeleteCommentX(c.Context(), clientRequest.CommentID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Status:  fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
 
 	log.Fatal(app.Listen(port))
