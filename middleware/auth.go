@@ -14,12 +14,12 @@ func RequireAuth(c *fiber.Ctx) error {
 	response := user.ValidateX(c.Get("Authorization"))
 
 	// 이미 있는 사용자 인가?
-	author, err := database.New().GetAuthorByAuthorID(c.Context(), response.Data)
+	author, err := database.Get().GetAuthorByAuthorID(c.Context(), response.Data)
 
 	// 없는 유저라면
 	if err != nil {
 		// 사용자 등록하기
-		author = database.New().CreateAuthorX(c.Context(), &ent.Author{AuthorID: response.Data})
+		author = database.Get().CreateAuthorX(c.Context(), &ent.Author{AuthorID: response.Data})
 	}
 
 	// local로 저장
@@ -35,7 +35,7 @@ func Auth(c *fiber.Ctx) error {
 	response, err := user.Validate(c.Get("Authorization"))
 	if err == nil {
 		// 이미 있는 사용자 인가?
-		author, _ = database.New().GetAuthorByAuthorID(c.Context(), response.Data)
+		author, _ = database.Get().GetAuthorByAuthorID(c.Context(), response.Data)
 	}
 
 	c.Locals("user", author)

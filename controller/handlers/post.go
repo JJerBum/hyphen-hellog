@@ -15,7 +15,7 @@ func CreatePost(c *fiber.Ctx) error {
 	clientRequest := new(request.CreatePost).Parse(c)
 	verifier.Validate(c)
 
-	database.New().CreatePostX(c.Context(),
+	database.Get().CreatePostX(c.Context(),
 		&ent.Post{
 			Title:        clientRequest.Title,
 			Content:      clientRequest.Content,
@@ -35,12 +35,13 @@ func GetPost(c *fiber.Ctx) error {
 	clientRequest := new(request.GetPost).Parse(c)
 	verifier.Validate(c)
 
-	post := db.GetPostX(c.Context(), clientRequest.PostID)
-	author := db.GetAuthorXByPostID(c.Context(), post.ID)
+	post := database.Get().GetPostX(c.Context(), clientRequest.PostID)
+
+	author := database.Get().GetAuthorXByPostID(c.Context(), post.ID)
 
 	var isLiked bool
 	if c.Locals("user").(*ent.Author) != nil {
-		isLiked = database.New().IsLikedXByAuthorID(c.Context(), author.ID)
+		isLiked = database.Get().IsLikedXByAuthorID(c.Context(), author.ID)
 	} else {
 		isLiked = false
 	}
@@ -60,15 +61,15 @@ func UpdatePost(c *fiber.Ctx) error {
 	clientRequest := new(request.UpdatePost).Parse(c)
 	verifier.Validate(c)
 
-	if database.New().GetAuthorXByPostID(c.Context(), clientRequest.PostID).ID != c.Locals("user").(*ent.Author).ID {
+	if database.Get().GetAuthorXByPostID(c.Context(), clientRequest.PostID).ID != c.Locals("user").(*ent.Author).ID {
 		panic("잘못된 접근 입니다. (해당 사용자는 해당 포스트를 변경할 수 없습니다.)")
 	}
 
 	// 왼래 있었던 이미지 삭제
-	siss.DeleteImage(database.New().GetPostX(c.Context(), clientRequest.PostID).PreviewImage)
+	siss.DeleteImage(database.Get().GetPostX(c.Context(), clientRequest.PostID).PreviewImage)
 
 	// 업데이트
-	database.New().UpdatePostX(c.Context(),
+	database.Get().UpdatePostX(c.Context(),
 		&ent.Post{
 			ID:           clientRequest.PostID,
 			Title:        clientRequest.Title,
@@ -88,11 +89,11 @@ func UpdatePost(c *fiber.Ctx) error {
 func DeletePost(c *fiber.Ctx) error {
 	clientRequest := new(request.DeletePost).Parse(c)
 
-	if database.New().GetAuthorXByPostID(c.Context(), clientRequest.PostID).ID != c.Locals("user").(*ent.Author).ID {
+	if database.Get().GetAuthorXByPostID(c.Context(), clientRequest.PostID).ID != c.Locals("user").(*ent.Author).ID {
 		panic("잘못된 접근 입니다. (해당 사용자는 해당 포스트를 삭제할 수 없습니다.)")
 	}
 
-	database.New().DeletePostX(c.Context(), clientRequest.PostID)
+	database.Get().DeletePostX(c.Context(), clientRequest.PostID)
 
 	return c.Status(fiber.StatusOK).JSON(response.Genreal{
 		Code:    fiber.StatusOK,

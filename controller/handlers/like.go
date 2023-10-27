@@ -15,7 +15,7 @@ func UpdateUnliked(c *fiber.Ctx) error {
 		panic(err)
 	}
 
-	database.New().DeleteLikeX(c.Context(), c.Locals("user").(*ent.Author).ID, postID)
+	database.Get().DeleteLikeX(c.Context(), c.Locals("user").(*ent.Author).ID, postID)
 
 	return c.Status(fiber.StatusOK).JSON(response.Genreal{
 		Code:    fiber.StatusOK,
@@ -31,9 +31,9 @@ func UpdateLiked(c *fiber.Ctx) error {
 	}
 
 	authorID := c.Locals("user").(*ent.Author).ID
-	_, err = database.New().UpdateLike(c.Context(), authorID, postID)
+	_, err = database.Get().UpdateLike(c.Context(), authorID, postID)
 	if err != nil {
-		database.New().CreateLikeX(c.Context(), authorID, postID)
+		database.Get().CreateLikeX(c.Context(), authorID, postID)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response.Genreal{
