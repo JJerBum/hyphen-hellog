@@ -10,6 +10,7 @@ import (
 	"hyphen-hellog/ent/post"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -24,15 +25,15 @@ type databaseType ent.Client
 var instance *databaseType = nil
 var once sync.Once
 
-func load(c config) {
-	username := c.Get("DATASOURCE_USERNAME")
-	password := c.Get("DATASOURCE_PASSWORD")
-	host := c.Get("DATASOURCE_HOST")
-	port := c.Get("DATASOURCE_PORT")
-	dbName := c.Get("DATASOURCE_DB_NAME")
-	maxPoolIdle, err := strconv.Atoi(c.Get("DATASOURCE_POOL_IDLE_CONN"))
-	maxPoolOpen, err := strconv.Atoi(c.Get("DATASOURCE_POOL_MAX_CONN"))
-	maxPollLifeTime, err := strconv.Atoi(c.Get("DATASOURCE_POOL_LIFE_TIME"))
+func load() {
+	username := os.Getenv("DATASOURCE_USERNAME")
+	password := os.Getenv("DATASOURCE_PASSWORD")
+	host := os.Getenv("DATASOURCE_HOST")
+	port := os.Getenv("DATASOURCE_PORT")
+	dbName := os.Getenv("DATASOURCE_DB_NAME")
+	maxPoolIdle, err := strconv.Atoi(os.Getenv("DATASOURCE_POOL_IDLE_CONN"))
+	maxPoolOpen, err := strconv.Atoi(os.Getenv("DATASOURCE_POOL_MAX_CONN"))
+	maxPollLifeTime, err := strconv.Atoi(os.Getenv("DATASOURCE_POOL_LIFE_TIME"))
 	exception.Sniff(err)
 
 	dsn := username + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName + "?parseTime=true"
@@ -58,12 +59,11 @@ func load(c config) {
 func New() *databaseType {
 	if instance == nil {
 		once.Do(func() {
-			load(newConfig())
+			load()
 		})
 	}
 
 	return instance
-
 }
 
 // repository

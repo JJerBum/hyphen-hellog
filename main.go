@@ -4,6 +4,7 @@ import (
 	"flag"
 	"hyphen-hellog/cerrors"
 	"hyphen-hellog/controller"
+	"hyphen-hellog/initializer"
 	"log"
 	"strconv"
 
@@ -16,8 +17,10 @@ var port string
 func init() {
 	flagPort := flag.Int("p", 8080, "Enter the port")
 	flag.Parse()
-
 	port = ":" + strconv.Itoa(*flagPort)
+
+	// load env variables
+	initializer.LoadEnv()
 }
 
 func main() {
