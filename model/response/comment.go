@@ -3,7 +3,7 @@ package response
 import "hyphen-hellog/ent"
 
 type GetComments struct {
-	Comments []Comment
+	Comments []Comment `json:"comments"`
 }
 
 type Comment struct {
