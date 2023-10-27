@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"hyphen-hellog/cerrors"
 	"hyphen-hellog/client/siss"
 	"hyphen-hellog/database"
 	"hyphen-hellog/ent"
@@ -27,32 +28,10 @@ func init() {
 }
 
 func main() {
-	app := fiber.New(fiber.Config{})
+	app := fiber.New(fiber.Config{ErrorHandler: cerrors.ErrorHandler})
 	app.Use(recover.New())
-	app.Use(middleware.Auth)
 
 	api := app.Group("/api/hellog")
-
-	// 완
-	api.Post("/posts/post", func(c *fiber.Ctx) (err error) {
-		clientRequest := new(request.CreatePost).Parse(c)
-		verifier.Validate(c)
-
-		database.New().CreatePostX(c.Context(),
-			&ent.Post{
-				Title:        clientRequest.Title,
-				Content:      clientRequest.Content,
-				PreviewImage: siss.CreateImage(clientRequest.PreviewImage),
-				IsPrivate:    clientRequest.IsPrivate,
-			},
-			c.Locals("user").(*ent.Author).ID)
-
-		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
-			Message: "Success",
-			Data:    nil,
-		})
-	})
 
 	api.Post("/posts/:post_id/comments/comment", func(c *fiber.Ctx) error {
 		clientRequest := new(request.CreateComment).Parse(c)
@@ -67,7 +46,7 @@ func main() {
 			c.Locals("user").(*ent.Author).ID)
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data:    nil,
 		})
@@ -81,7 +60,7 @@ func main() {
 		author := database.New().GetAuthorXByPostID(c.Context(), post.ID)
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data: response.GetPost{
 				Post:   post,
@@ -125,9 +104,32 @@ func main() {
 		}
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data:    r,
+		})
+	})
+
+	app.Use(middleware.Auth)
+
+	// 완
+	api.Post("/posts/post", func(c *fiber.Ctx) (err error) {
+		clientRequest := new(request.CreatePost).Parse(c)
+		verifier.Validate(c)
+
+		database.New().CreatePostX(c.Context(),
+			&ent.Post{
+				Title:        clientRequest.Title,
+				Content:      clientRequest.Content,
+				PreviewImage: siss.CreateImage(clientRequest.PreviewImage),
+				IsPrivate:    clientRequest.IsPrivate,
+			},
+			c.Locals("user").(*ent.Author).ID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Code:    fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
 		})
 	})
 
@@ -154,7 +156,7 @@ func main() {
 			c.Locals("user").(*ent.Author).ID)
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data:    nil,
 		})
@@ -175,18 +177,44 @@ func main() {
 		})
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data:    nil,
 		})
 	})
 
 	api.Patch("/posts/:post_id/unliked", func(c *fiber.Ctx) error {
-		return nil
+		postID, err := strconv.Atoi(c.Params("post_id"))
+		if err != nil {
+			panic(err)
+		}
+
+		database.New().DeleteLikeX(c.Context(), c.Locals("user").(*ent.Author).ID, postID)
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Code:    fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
 
 	api.Patch("/posts/:post_id/liked", func(c *fiber.Ctx) error {
-		return nil
+		postID, err := strconv.Atoi(c.Params("post_id"))
+		if err != nil {
+			panic(err)
+		}
+
+		authorID := c.Locals("user").(*ent.Author).ID
+		_, err = database.New().UpdateLike(c.Context(), authorID, postID)
+		if err != nil {
+			database.New().CreateLikeX(c.Context(), authorID, postID)
+		}
+
+		return c.Status(fiber.StatusOK).JSON(response.Genreal{
+			Code:    fiber.StatusOK,
+			Message: "Success",
+			Data:    nil,
+		})
 	})
 
 	api.Delete("/posts/:post_id", func(c *fiber.Ctx) error {
@@ -199,7 +227,7 @@ func main() {
 		database.New().DeletePostX(c.Context(), clientRequest.PostID)
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data:    nil,
 		})
@@ -216,10 +244,19 @@ func main() {
 		database.New().DeleteCommentX(c.Context(), clientRequest.CommentID)
 
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
-			Status:  fiber.StatusOK,
+			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data:    nil,
 		})
+	})
+
+	api.Get("/view", func(c *fiber.Ctx) error {
+		b := database.New().IsLikedXByAuthorID(c.Context(), c.Locals("user").(*ent.Author).ID)
+		if b {
+			return c.SendString("liked")
+		} else {
+			return c.SendString("not liked")
+		}
 	})
 
 	log.Fatal(app.Listen(port))

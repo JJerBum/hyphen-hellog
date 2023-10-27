@@ -6,6 +6,7 @@ import (
 	"hyphen-hellog/ent"
 	"hyphen-hellog/ent/author"
 	"hyphen-hellog/ent/comment"
+	"hyphen-hellog/ent/like"
 	"hyphen-hellog/ent/post"
 	"log"
 	"math/rand"
@@ -222,7 +223,30 @@ func (d *databaseType) DeleteCommentX(ctx context.Context, ID int) {
 		ExecX(ctx)
 }
 
-// func (d *databaseType) CreateLike()
-// func (d *databaseType) GetLike()
-// func (d *databaseType) UpdateLike()
-// func (d *databaseType) DeleteLike()
+func (d *databaseType) CreateLikeX(ctx context.Context, authorID int, PostID int) *ent.Like {
+	return d.Like.Create().
+		SetAuthorID(authorID).
+		SetPostID(PostID).
+		SaveX(ctx)
+}
+
+func (d *databaseType) IsLikedXByAuthorID(ctx context.Context, authorID int) bool {
+	return d.Like.Query().QueryAuthor().Where(author.ID(authorID)).ExistX(ctx)
+}
+
+func (d *databaseType) UpdateLike(ctx context.Context, authorID int, PostID int) (*ent.Like, error) {
+	return d.Like.Create().
+		SetAuthorID(authorID).
+		SetPostID(PostID).
+		Save(ctx)
+}
+
+func (d *databaseType) DeleteLikeX(ctx context.Context, authorID int, postID int) {
+
+	d.Like.Delete().
+		Where(
+			like.HasAuthorWith(author.ID(authorID)),
+			like.HasPostWith(post.ID(postID)),
+		).
+		ExecX(ctx)
+}
