@@ -23,8 +23,8 @@ func Route(app *fiber.App) *fiber.App {
 	api.Delete("/posts/comments/comment", middleware.RequireAuth, handlers.DeleteComment)
 
 	// like
-	api.Patch("/posts/:post_id/unliked", middleware.RequireAuth, handlers.UpdateUnliked)
-	api.Patch("/posts/:post_id/liked", middleware.RequireAuth, handlers.UpdateLiked)
+	api.Patch("/posts/:post_id/unlike", middleware.RequireAuth, handlers.UpdateUnliked)
+	api.Patch("/posts/:post_id/like", middleware.RequireAuth, handlers.UpdateLiked)
 
 	return app
 }
