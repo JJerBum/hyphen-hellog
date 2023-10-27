@@ -15,7 +15,6 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var port string
@@ -29,7 +28,7 @@ func init() {
 
 func main() {
 	app := fiber.New(fiber.Config{ErrorHandler: cerrors.ErrorHandler})
-	app.Use(recover.New())
+	// app.Use(recover.New())
 
 	api := app.Group("/api/hellog")
 
@@ -52,19 +51,27 @@ func main() {
 		})
 	})
 
-	api.Get("/posts/:post_id", func(c *fiber.Ctx) error {
+	api.Get("/posts/:post_id", middleware.Auth, func(c *fiber.Ctx) error {
 		clientRequest := new(request.GetPost).Parse(c)
 		verifier.Validate(c)
 
 		post := database.New().GetPostX(c.Context(), clientRequest.PostID)
 		author := database.New().GetAuthorXByPostID(c.Context(), post.ID)
 
+		var isLiked bool
+		if c.Locals("user").(*ent.Author) != nil {
+			isLiked = database.New().IsLikedXByAuthorID(c.Context(), author.ID)
+		} else {
+			isLiked = false
+		}
+
 		return c.Status(fiber.StatusOK).JSON(response.Genreal{
 			Code:    fiber.StatusOK,
 			Message: "Success",
 			Data: response.GetPost{
-				Post:   post,
-				Author: author,
+				Post:    post,
+				IsLiked: isLiked,
+				Author:  author,
 			},
 		})
 	})
@@ -110,7 +117,7 @@ func main() {
 		})
 	})
 
-	app.Use(middleware.Auth)
+	app.Use(middleware.RequireAuth)
 
 	// 완
 	api.Post("/posts/post", func(c *fiber.Ctx) (err error) {

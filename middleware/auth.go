@@ -8,10 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Auth(c *fiber.Ctx) error {
+func RequireAuth(c *fiber.Ctx) error {
 
 	// 검증된 유저 인가?
-	response := user.Validate(c.Get("Authorization"))
+	response := user.ValidateX(c.Get("Authorization"))
 
 	// 이미 있는 사용자 인가?
 	author, err := database.New().GetAuthorByAuthorID(c.Context(), response.Data)
@@ -23,6 +23,21 @@ func Auth(c *fiber.Ctx) error {
 	}
 
 	// local로 저장
+	c.Locals("user", author)
+
+	return c.Next()
+}
+
+func Auth(c *fiber.Ctx) error {
+	var author *ent.Author = nil
+
+	// 검증된 유저 인가?
+	response, err := user.Validate(c.Get("Authorization"))
+	if err == nil {
+		// 이미 있는 사용자 인가?
+		author, _ = database.New().GetAuthorByAuthorID(c.Context(), response.Data)
+	}
+
 	c.Locals("user", author)
 
 	return c.Next()

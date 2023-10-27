@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"hyphen-hellog/cerrors"
 	"hyphen-hellog/cerrors/exception"
 	"hyphen-hellog/model/response"
@@ -42,7 +43,7 @@ func Get(token string) *response.GetUserInfo {
 }
 
 // Validate() 함수는 매개변수 token을 이용하여
-func Validate(token string) *response.GetUserValidate {
+func ValidateX(token string) *response.GetUserValidate {
 	userValidateModel := new(response.GetUserValidate)
 
 	// 요청 헤더에 토큰 값을 설정합니다.
@@ -72,4 +73,46 @@ func Validate(token string) *response.GetUserValidate {
 	}
 
 	return userValidateModel
+}
+
+// Validate() 함수는 매개변수 token을 이용하여
+func Validate(token string) (*response.GetUserValidate, error) {
+	userValidateModel := new(response.GetUserValidate)
+
+	// 요청 헤더에 토큰 값을 설정합니다.
+	req, err := http.NewRequest("POST", serverURL+"/token/validate", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", token)
+
+	// 요청을 보냅니다.
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 응답을 수신합니다.
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(body) == 0 {
+		return nil, fmt.Errorf("error")
+	}
+
+	err = json.Unmarshal(body, userValidateModel)
+	if err != nil {
+		return nil, err
+	}
+
+	if userValidateModel.Code != 200 {
+		panic(cerrors.ErrInvalidRequest)
+	}
+
+	return userValidateModel, nil
 }
