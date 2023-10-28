@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"hyphen-hellog/cerrors"
 	"hyphen-hellog/model"
 	"io"
@@ -66,7 +65,9 @@ func Validate(token string) (*model.InGetUserValidate, error) {
 	// 요청 헤더에 토큰 값을 설정합니다.
 	req, err := http.NewRequest("POST", serverURL+"/token/validate", nil)
 	if err != nil {
-		return nil, err
+		return nil, cerrors.RequestFailedErr{
+			Err: err.Error(),
+		}
 	}
 
 	req.Header.Set("Authorization", token)
@@ -75,27 +76,35 @@ func Validate(token string) (*model.InGetUserValidate, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, cerrors.RequestFailedErr{
+			Err: err.Error(),
+		}
 	}
 
 	// 응답을 수신합니다.
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, cerrors.RequestFailedErr{
+			Err: err.Error(),
+		}
 	}
 
 	if len(body) == 0 {
-		return nil, fmt.Errorf("error")
+		return nil, cerrors.RequestFailedErr{
+			Err: "response body len is 0",
+		}
 	}
 
 	err = json.Unmarshal(body, userValidateModel)
 	if err != nil {
-		return nil, err
+		return nil, cerrors.RequestFailedErr{
+			Err: err.Error(),
+		}
 	}
 
 	if userValidateModel.Code != 200 {
-		panic(cerrors.RequestFailedErr{
+		panic(cerrors.UnauthorizedErr{
 			Err: "Response HTTP 1.1 Status 200이 아닙니다.",
 		})
 	}
