@@ -22,26 +22,34 @@ func CreateImage(image *multipart.FileHeader) string {
 	// file field 설정
 	part, err := multipartWriter.CreateFormFile("image", "image.txt")
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// 업로드된 이미지 파일을 열기
 	file, err := image.Open()
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 	defer file.Close()
 
 	// 파일 데이터를 MultiPart Form 데이터에 복사
 	_, err = io.Copy(part, file)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// MultiPart Form 마무리
 	err = multipartWriter.Close()
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// HTTP POST 요청 만들기
@@ -57,21 +65,27 @@ func CreateImage(image *multipart.FileHeader) string {
 	// 요청 보내기
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 	defer resp.Body.Close()
 
 	// body parsing
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// json Unmarshal
 	respJSON := new(response.GetSISS)
 	err = json.Unmarshal(respBody, respJSON)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// 유효성 검사
@@ -81,7 +95,9 @@ func CreateImage(image *multipart.FileHeader) string {
 
 	// 응답에 실패했으면
 	if respJSON.Code != 201 {
-		panic(cerrors.ErrRequestFailed)
+		panic(cerrors.RequestFailedErr{
+			Err: "응답이 201(StatusCreated)가 아닙니다.",
+		})
 	}
 
 	return serverURL + respJSON.Data.ID
@@ -101,21 +117,27 @@ func DeleteImage(image string) {
 	// 요청 보내기
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 	defer resp.Body.Close()
 
 	// body parsing
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// json Unmarshal
 	respJSON := new(response.DeleteSISS)
 	err = json.Unmarshal(respBody, respJSON)
 	if err != nil {
-		panic(cerrors.ErrUnknown)
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
 	}
 
 	// 유효성 검사
@@ -123,6 +145,8 @@ func DeleteImage(image string) {
 
 	// 응답에 실패했으면
 	if respJSON.Code != 200 {
-		panic(cerrors.ErrRequestFailed)
+		panic(cerrors.RequestFailedErr{
+			Err: "응답이 200(StatusOK)가 아닙니다.",
+		})
 	}
 }
