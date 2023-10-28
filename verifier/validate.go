@@ -1,7 +1,9 @@
 package verifier
 
 import (
+	"encoding/json"
 	"hyphen-hellog/cerrors"
+	"hyphen-hellog/cerrors/exception"
 
 	"github.com/go-playground/validator"
 )
@@ -13,22 +15,22 @@ func init() {
 }
 
 func Validate(model interface{}) {
-	if err := validate.Struct(model); err != nil {
-		panic(cerrors.ErrValidation)
+	validate := validator.New()
+	err := validate.Struct(model)
+	if err != nil {
+		var messages []map[string]interface{}
+		for _, err := range err.(validator.ValidationErrors) {
+			messages = append(messages, map[string]interface{}{
+				"field":   err.Field(),
+				"message": "this field is " + err.Tag(),
+			})
+		}
+
+		jsonMessage, errJson := json.Marshal(messages)
+		exception.Sniff(errJson)
+
+		panic(cerrors.ValidationErr{
+			Err: string(jsonMessage),
+		})
 	}
-
-	// var messages []map[string]interface{}
-	// for _, err := range err.(validator.ValidationErrors) {
-	// 	messages = append(messages, map[string]interface{}{
-	// 		"field":   err.Field(),
-	// 		"message": "this field is " + err.Tag(),
-	// 	})
-	// }
-
-	// jsonMessage, errJson := json.Marshal(messages)
-	// exception.Sniff(errJson)
-
-	// panic(cerrors.ValidationError{
-	// 	ErrorMessage: string(jsonMessage),
-	// })
 }

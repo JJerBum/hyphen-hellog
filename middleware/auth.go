@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"hyphen-hellog/cerrors"
 	"hyphen-hellog/client/user"
 	"hyphen-hellog/database"
 	"hyphen-hellog/ent"
@@ -11,7 +12,12 @@ import (
 func RequireAuth(c *fiber.Ctx) error {
 
 	// 검증된 유저 인가?
-	response := user.ValidateX(c.Get("Authorization"))
+	response, err := user.Validate(c.Get("Authorization"))
+	if err != nil {
+		panic(cerrors.RequestFailedErr{
+			Err: err.Error(),
+		})
+	}
 
 	// 이미 있는 사용자 인가?
 	author, err := database.Get().GetAuthorByAuthorID(c.Context(), response.Data)
