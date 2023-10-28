@@ -1,6 +1,6 @@
-package response
+package model
 
-type GetUserInfo struct {
+type InGetUserInfo struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Data    struct {
@@ -17,7 +17,7 @@ type GetUserInfo struct {
 	} `json:"data"`
 }
 
-type GetUserValidate struct {
+type InGetUserValidate struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Data    int    `json:"data"`

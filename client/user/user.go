@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hyphen-hellog/cerrors"
-	"hyphen-hellog/model/response"
+	"hyphen-hellog/model"
 	"io"
 	"net/http"
 )
@@ -12,9 +12,9 @@ import (
 var serverURL = "http://101.101.217.155:8081/api"
 
 // Get()함수는 User token 매개변수를 이용해 마이크로서비스에게 /api/user/info로 요청하여 응답값을 반환하는 함수입니다.
-func Get(token string) *response.GetUserInfo {
+func Get(token string) *model.InGetUserInfo {
 
-	userInfoModel := new(response.GetUserInfo)
+	userInfoModel := new(model.InGetUserInfo)
 
 	// 요청 헤더에 토큰 값을 설정합니다.
 	req, err := http.NewRequest("GET", serverURL+"/user/info", nil)
@@ -60,8 +60,8 @@ func Get(token string) *response.GetUserInfo {
 }
 
 // Validate() 함수는 매개변수 token을 이용하여
-func Validate(token string) (*response.GetUserValidate, error) {
-	userValidateModel := new(response.GetUserValidate)
+func Validate(token string) (*model.InGetUserValidate, error) {
+	userValidateModel := new(model.InGetUserValidate)
 
 	// 요청 헤더에 토큰 값을 설정합니다.
 	req, err := http.NewRequest("POST", serverURL+"/token/validate", nil)

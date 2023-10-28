@@ -1,6 +1,6 @@
-package response
+package model
 
-type Genreal struct {
+type General struct {
 	Code    uint   `json:"code"`
 	Message string `json:"message"`
 	Data    any    `json:"data"`

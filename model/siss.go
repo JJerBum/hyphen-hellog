@@ -1,6 +1,6 @@
-package response
+package model
 
-type GetSISS struct {
+type InGetSISS struct {
 	Code    int    `json:"code" validate:"required"`
 	Message string `json:"message" validate:"required"`
 	Data    struct {
@@ -8,7 +8,7 @@ type GetSISS struct {
 	} `json:"data"`
 }
 
-type DeleteSISS struct {
+type InDeleteSISS struct {
 	Code    int    `json:"code" validate:"required"`
 	Message string `json:"message" validate:"required"`
 	Data    any    `json:"data"`

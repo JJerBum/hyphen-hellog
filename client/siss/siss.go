@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"hyphen-hellog/cerrors"
-	"hyphen-hellog/model/response"
+	"hyphen-hellog/model"
 	"hyphen-hellog/verifier"
 
 	"io"
@@ -80,7 +80,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	}
 
 	// json Unmarshal
-	respJSON := new(response.GetSISS)
+	respJSON := new(model.InGetSISS)
 	err = json.Unmarshal(respBody, respJSON)
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
@@ -132,7 +132,7 @@ func DeleteImage(image string) {
 	}
 
 	// json Unmarshal
-	respJSON := new(response.DeleteSISS)
+	respJSON := new(model.InDeleteSISS)
 	err = json.Unmarshal(respBody, respJSON)
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
