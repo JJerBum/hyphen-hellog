@@ -15,10 +15,11 @@ import (
 // PreviwImage는 FormFile() 함수를 이용해야 합니다.
 // IsPrivate는 FormValue() 함수를 이용해야 합니다.
 type InCreatePost struct {
-	Title        string                `form:"title"  validate:"required"`
-	Content      string                `form:"content" validate:"required"`
-	PreviewImage *multipart.FileHeader `form:"preview_image" validate:"required"`
-	IsPrivate    bool                  `form:"is_private" validate:"boolean"`
+	Title            string                `form:"title"  validate:"required"`
+	Content          string                `form:"content" validate:"required"`
+	PreviewImage     *multipart.FileHeader `form:"preview_image" validate:"required"`
+	ShortDescription string                `form:"short_description" validate:"required"`
+	IsPrivate        bool                  `form:"is_private"`
 }
 
 func (i *InCreatePost) ParseX(c *fiber.Ctx) *InCreatePost {
@@ -26,9 +27,9 @@ func (i *InCreatePost) ParseX(c *fiber.Ctx) *InCreatePost {
 
 	err = c.BodyParser(i)
 	i.IsPrivate = c.FormValue("is_private") == "true"
-	i.PreviewImage, err = c.FormFile("preview_image")
-
+	i.PreviewImage, err = c.FormFile("image")
 	if err != nil {
+
 		panic(cerrors.ParsingErr{
 			Err: err.Error(),
 		})
@@ -47,6 +48,25 @@ func (i *InGetPost) ParseX(c *fiber.Ctx) *InGetPost {
 	var err error
 
 	i.PostID, err = strconv.Atoi(c.Params("post_id"))
+	if err != nil {
+		panic(cerrors.ParsingErr{
+			Err: err.Error(),
+		})
+	}
+
+	verifier.Validate(i)
+
+	return i
+}
+
+type InGetPosts struct {
+	Num int `json:"post_id" validate:"required"`
+}
+
+func (i *InGetPosts) ParseX(c *fiber.Ctx) *InGetPosts {
+	var err error
+
+	i.Num, err = strconv.Atoi(c.Query("num"))
 	if err != nil {
 		panic(cerrors.ParsingErr{
 			Err: err.Error(),
@@ -85,7 +105,7 @@ func (i *InUpdatePost) ParseX(c *fiber.Ctx) *InUpdatePost {
 }
 
 type InDeletePost struct {
-	PostID int
+	PostID int `validate:"required"`
 }
 
 func (i *InDeletePost) ParseX(c *fiber.Ctx) *InDeletePost {
@@ -106,4 +126,8 @@ type OutGetPost struct {
 	*ent.Post   `json:"post"`
 	IsLiked     bool `json:"is_liked"`
 	*ent.Author `json:"author"`
+}
+
+type OutGetPosts struct {
+	Posts []*OutGetPost `json:"posts"`
 }

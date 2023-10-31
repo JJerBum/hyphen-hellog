@@ -20,6 +20,8 @@ const (
 	FieldContent = "content"
 	// FieldPreviewImage holds the string denoting the preview_image field in the database.
 	FieldPreviewImage = "preview_image"
+	// FieldShortDescription holds the string denoting the short_description field in the database.
+	FieldShortDescription = "short_description"
 	// FieldIsPrivate holds the string denoting the is_private field in the database.
 	FieldIsPrivate = "is_private"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldTitle,
 	FieldContent,
 	FieldPreviewImage,
+	FieldShortDescription,
 	FieldIsPrivate,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -96,6 +99,8 @@ var (
 	ContentValidator func(string) error
 	// PreviewImageValidator is a validator for the "preview_image" field. It is called by the builders before save.
 	PreviewImageValidator func(string) error
+	// ShortDescriptionValidator is a validator for the "short_description" field. It is called by the builders before save.
+	ShortDescriptionValidator func(string) error
 	// DefaultIsPrivate holds the default value on creation for the "is_private" field.
 	DefaultIsPrivate bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -127,6 +132,11 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 // ByPreviewImage orders the results by the preview_image field.
 func ByPreviewImage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPreviewImage, opts...).ToFunc()
+}
+
+// ByShortDescription orders the results by the short_description field.
+func ByShortDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShortDescription, opts...).ToFunc()
 }
 
 // ByIsPrivate orders the results by the is_private field.

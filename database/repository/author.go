@@ -83,6 +83,14 @@ func (d *DBType) GetAuthorByPostIDX(ctx context.Context, postID int) *ent.Author
 	return temp
 }
 
+func (d *DBType) GetAuthorByPostID(ctx context.Context, postID int) (*ent.Author, error) {
+	return d.Author.
+		Query().
+		Where(author.HasPostsWith(post.ID(postID))).
+		Only(ctx)
+
+}
+
 func (d *DBType) GetAuthorByCommentIDX(ctx context.Context, commentID int) *ent.Author {
 	temp, err := d.Author.
 		Query().

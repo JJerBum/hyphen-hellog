@@ -27,8 +27,13 @@ func init() {
 }
 
 func main() {
-	app := fiber.New(fiber.Config{ErrorHandler: errorHandler})
+	app := fiber.New(fiber.Config{
+		ErrorHandler: errorHandler,
+	})
+
 	app.Use(recover.New())
+
+	controller.Route(app)
 
 	log.Fatal(controller.Route(app).Listen(port))
 
@@ -99,7 +104,7 @@ func errorHandler(ctx *fiber.Ctx, err error) error {
 
 	if _, wrongApproachErr := err.(cerrors.WrongApproachErr); wrongApproachErr {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(model.General{
-			Code:    401,
+			Code:    400,
 			Message: "Wrong Approach",
 			Data:    err.Error(),
 		})

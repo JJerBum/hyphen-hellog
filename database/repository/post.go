@@ -13,6 +13,7 @@ func (d *DBType) CreatePostX(ctx context.Context, post *ent.Post, authorID int) 
 		SetTitle(post.Title).
 		SetContent(post.Content).
 		SetPreviewImage(post.PreviewImage).
+		SetShortDescription(post.ShortDescription).
 		SetIsPrivate(post.IsPrivate).
 		SetAuthorID(authorID).
 		Save(ctx)

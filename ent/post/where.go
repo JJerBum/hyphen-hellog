@@ -70,6 +70,11 @@ func PreviewImage(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldPreviewImage, v))
 }
 
+// ShortDescription applies equality check predicate on the "short_description" field. It's identical to ShortDescriptionEQ.
+func ShortDescription(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldShortDescription, v))
+}
+
 // IsPrivate applies equality check predicate on the "is_private" field. It's identical to IsPrivateEQ.
 func IsPrivate(v bool) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldIsPrivate, v))
@@ -278,6 +283,71 @@ func PreviewImageEqualFold(v string) predicate.Post {
 // PreviewImageContainsFold applies the ContainsFold predicate on the "preview_image" field.
 func PreviewImageContainsFold(v string) predicate.Post {
 	return predicate.Post(sql.FieldContainsFold(FieldPreviewImage, v))
+}
+
+// ShortDescriptionEQ applies the EQ predicate on the "short_description" field.
+func ShortDescriptionEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldShortDescription, v))
+}
+
+// ShortDescriptionNEQ applies the NEQ predicate on the "short_description" field.
+func ShortDescriptionNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldShortDescription, v))
+}
+
+// ShortDescriptionIn applies the In predicate on the "short_description" field.
+func ShortDescriptionIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldShortDescription, vs...))
+}
+
+// ShortDescriptionNotIn applies the NotIn predicate on the "short_description" field.
+func ShortDescriptionNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldShortDescription, vs...))
+}
+
+// ShortDescriptionGT applies the GT predicate on the "short_description" field.
+func ShortDescriptionGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldShortDescription, v))
+}
+
+// ShortDescriptionGTE applies the GTE predicate on the "short_description" field.
+func ShortDescriptionGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldShortDescription, v))
+}
+
+// ShortDescriptionLT applies the LT predicate on the "short_description" field.
+func ShortDescriptionLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldShortDescription, v))
+}
+
+// ShortDescriptionLTE applies the LTE predicate on the "short_description" field.
+func ShortDescriptionLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldShortDescription, v))
+}
+
+// ShortDescriptionContains applies the Contains predicate on the "short_description" field.
+func ShortDescriptionContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldShortDescription, v))
+}
+
+// ShortDescriptionHasPrefix applies the HasPrefix predicate on the "short_description" field.
+func ShortDescriptionHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldShortDescription, v))
+}
+
+// ShortDescriptionHasSuffix applies the HasSuffix predicate on the "short_description" field.
+func ShortDescriptionHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldShortDescription, v))
+}
+
+// ShortDescriptionEqualFold applies the EqualFold predicate on the "short_description" field.
+func ShortDescriptionEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldShortDescription, v))
+}
+
+// ShortDescriptionContainsFold applies the ContainsFold predicate on the "short_description" field.
+func ShortDescriptionContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldShortDescription, v))
 }
 
 // IsPrivateEQ applies the EQ predicate on the "is_private" field.

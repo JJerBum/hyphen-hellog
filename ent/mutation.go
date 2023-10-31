@@ -1805,27 +1805,28 @@ func (m *LikeMutation) ResetEdge(name string) error {
 // PostMutation represents an operation that mutates the Post nodes in the graph.
 type PostMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	title           *string
-	content         *string
-	preview_image   *string
-	is_private      *bool
-	created_at      *time.Time
-	updated_at      *time.Time
-	clearedFields   map[string]struct{}
-	comments        map[int]struct{}
-	removedcomments map[int]struct{}
-	clearedcomments bool
-	likes           map[int]struct{}
-	removedlikes    map[int]struct{}
-	clearedlikes    bool
-	author          *int
-	clearedauthor   bool
-	done            bool
-	oldValue        func(context.Context) (*Post, error)
-	predicates      []predicate.Post
+	op                Op
+	typ               string
+	id                *int
+	title             *string
+	content           *string
+	preview_image     *string
+	short_description *string
+	is_private        *bool
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	comments          map[int]struct{}
+	removedcomments   map[int]struct{}
+	clearedcomments   bool
+	likes             map[int]struct{}
+	removedlikes      map[int]struct{}
+	clearedlikes      bool
+	author            *int
+	clearedauthor     bool
+	done              bool
+	oldValue          func(context.Context) (*Post, error)
+	predicates        []predicate.Post
 }
 
 var _ ent.Mutation = (*PostMutation)(nil)
@@ -2032,6 +2033,42 @@ func (m *PostMutation) OldPreviewImage(ctx context.Context) (v string, err error
 // ResetPreviewImage resets all changes to the "preview_image" field.
 func (m *PostMutation) ResetPreviewImage() {
 	m.preview_image = nil
+}
+
+// SetShortDescription sets the "short_description" field.
+func (m *PostMutation) SetShortDescription(s string) {
+	m.short_description = &s
+}
+
+// ShortDescription returns the value of the "short_description" field in the mutation.
+func (m *PostMutation) ShortDescription() (r string, exists bool) {
+	v := m.short_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShortDescription returns the old "short_description" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldShortDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShortDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShortDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShortDescription: %w", err)
+	}
+	return oldValue.ShortDescription, nil
+}
+
+// ResetShortDescription resets all changes to the "short_description" field.
+func (m *PostMutation) ResetShortDescription() {
+	m.short_description = nil
 }
 
 // SetIsPrivate sets the "is_private" field.
@@ -2323,7 +2360,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.title != nil {
 		fields = append(fields, post.FieldTitle)
 	}
@@ -2332,6 +2369,9 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.preview_image != nil {
 		fields = append(fields, post.FieldPreviewImage)
+	}
+	if m.short_description != nil {
+		fields = append(fields, post.FieldShortDescription)
 	}
 	if m.is_private != nil {
 		fields = append(fields, post.FieldIsPrivate)
@@ -2356,6 +2396,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case post.FieldPreviewImage:
 		return m.PreviewImage()
+	case post.FieldShortDescription:
+		return m.ShortDescription()
 	case post.FieldIsPrivate:
 		return m.IsPrivate()
 	case post.FieldCreatedAt:
@@ -2377,6 +2419,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case post.FieldPreviewImage:
 		return m.OldPreviewImage(ctx)
+	case post.FieldShortDescription:
+		return m.OldShortDescription(ctx)
 	case post.FieldIsPrivate:
 		return m.OldIsPrivate(ctx)
 	case post.FieldCreatedAt:
@@ -2412,6 +2456,13 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPreviewImage(v)
+		return nil
+	case post.FieldShortDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShortDescription(v)
 		return nil
 	case post.FieldIsPrivate:
 		v, ok := value.(bool)
@@ -2491,6 +2542,9 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldPreviewImage:
 		m.ResetPreviewImage()
+		return nil
+	case post.FieldShortDescription:
+		m.ResetShortDescription()
 		return nil
 	case post.FieldIsPrivate:
 		m.ResetIsPrivate()

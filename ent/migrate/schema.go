@@ -88,6 +88,7 @@ var (
 		{Name: "title", Type: field.TypeString, Size: 255},
 		{Name: "content", Type: field.TypeString, SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "preview_image", Type: field.TypeString, Unique: true, Size: 100},
+		{Name: "short_description", Type: field.TypeString, Size: 100},
 		{Name: "is_private", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -101,7 +102,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "posts_authors_posts",
-				Columns:    []*schema.Column{PostsColumns[7]},
+				Columns:    []*schema.Column{PostsColumns[8]},
 				RefColumns: []*schema.Column{AuthorsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

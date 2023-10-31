@@ -12,6 +12,7 @@ func Route(app *fiber.App) *fiber.App {
 
 	// post
 	api.Post("/posts/:post_id", middleware.RequireAuth, handlers.CreatePost)
+	api.Get("/posts", middleware.Auth, handlers.GetPosts)
 	api.Get("/posts/:post_id", middleware.Auth, handlers.GetPost)
 	api.Patch("/posts/:post_id", middleware.RequireAuth, handlers.UpdatePost)
 	api.Delete("/posts/:post_id", middleware.RequireAuth, handlers.DeletePost)

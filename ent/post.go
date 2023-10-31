@@ -24,6 +24,8 @@ type Post struct {
 	Content string `json:"content,omitempty"`
 	// PreviewImage holds the value of the "preview_image" field.
 	PreviewImage string `json:"preview_image,omitempty"`
+	// ShortDescription holds the value of the "short_description" field.
+	ShortDescription string `json:"short_description,omitempty"`
 	// IsPrivate holds the value of the "is_private" field.
 	IsPrivate bool `json:"is_private,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -90,7 +92,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case post.FieldID:
 			values[i] = new(sql.NullInt64)
-		case post.FieldTitle, post.FieldContent, post.FieldPreviewImage:
+		case post.FieldTitle, post.FieldContent, post.FieldPreviewImage, post.FieldShortDescription:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedAt, post.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -134,6 +136,12 @@ func (po *Post) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field preview_image", values[i])
 			} else if value.Valid {
 				po.PreviewImage = value.String
+			}
+		case post.FieldShortDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field short_description", values[i])
+			} else if value.Valid {
+				po.ShortDescription = value.String
 			}
 		case post.FieldIsPrivate:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -219,6 +227,9 @@ func (po *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("preview_image=")
 	builder.WriteString(po.PreviewImage)
+	builder.WriteString(", ")
+	builder.WriteString("short_description=")
+	builder.WriteString(po.ShortDescription)
 	builder.WriteString(", ")
 	builder.WriteString("is_private=")
 	builder.WriteString(fmt.Sprintf("%v", po.IsPrivate))

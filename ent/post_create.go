@@ -41,6 +41,12 @@ func (pc *PostCreate) SetPreviewImage(s string) *PostCreate {
 	return pc
 }
 
+// SetShortDescription sets the "short_description" field.
+func (pc *PostCreate) SetShortDescription(s string) *PostCreate {
+	pc.mutation.SetShortDescription(s)
+	return pc
+}
+
 // SetIsPrivate sets the "is_private" field.
 func (pc *PostCreate) SetIsPrivate(b bool) *PostCreate {
 	pc.mutation.SetIsPrivate(b)
@@ -207,6 +213,14 @@ func (pc *PostCreate) check() error {
 			return &ValidationError{Name: "preview_image", err: fmt.Errorf(`ent: validator failed for field "Post.preview_image": %w`, err)}
 		}
 	}
+	if _, ok := pc.mutation.ShortDescription(); !ok {
+		return &ValidationError{Name: "short_description", err: errors.New(`ent: missing required field "Post.short_description"`)}
+	}
+	if v, ok := pc.mutation.ShortDescription(); ok {
+		if err := post.ShortDescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "short_description", err: fmt.Errorf(`ent: validator failed for field "Post.short_description": %w`, err)}
+		}
+	}
 	if _, ok := pc.mutation.IsPrivate(); !ok {
 		return &ValidationError{Name: "is_private", err: errors.New(`ent: missing required field "Post.is_private"`)}
 	}
@@ -253,6 +267,10 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.PreviewImage(); ok {
 		_spec.SetField(post.FieldPreviewImage, field.TypeString, value)
 		_node.PreviewImage = value
+	}
+	if value, ok := pc.mutation.ShortDescription(); ok {
+		_spec.SetField(post.FieldShortDescription, field.TypeString, value)
+		_node.ShortDescription = value
 	}
 	if value, ok := pc.mutation.IsPrivate(); ok {
 		_spec.SetField(post.FieldIsPrivate, field.TypeBool, value)

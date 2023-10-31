@@ -49,6 +49,12 @@ func (pu *PostUpdate) SetPreviewImage(s string) *PostUpdate {
 	return pu
 }
 
+// SetShortDescription sets the "short_description" field.
+func (pu *PostUpdate) SetShortDescription(s string) *PostUpdate {
+	pu.mutation.SetShortDescription(s)
+	return pu
+}
+
 // SetIsPrivate sets the "is_private" field.
 func (pu *PostUpdate) SetIsPrivate(b bool) *PostUpdate {
 	pu.mutation.SetIsPrivate(b)
@@ -238,6 +244,11 @@ func (pu *PostUpdate) check() error {
 			return &ValidationError{Name: "preview_image", err: fmt.Errorf(`ent: validator failed for field "Post.preview_image": %w`, err)}
 		}
 	}
+	if v, ok := pu.mutation.ShortDescription(); ok {
+		if err := post.ShortDescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "short_description", err: fmt.Errorf(`ent: validator failed for field "Post.short_description": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -261,6 +272,9 @@ func (pu *PostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.PreviewImage(); ok {
 		_spec.SetField(post.FieldPreviewImage, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.ShortDescription(); ok {
+		_spec.SetField(post.FieldShortDescription, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.IsPrivate(); ok {
 		_spec.SetField(post.FieldIsPrivate, field.TypeBool, value)
@@ -425,6 +439,12 @@ func (puo *PostUpdateOne) SetContent(s string) *PostUpdateOne {
 // SetPreviewImage sets the "preview_image" field.
 func (puo *PostUpdateOne) SetPreviewImage(s string) *PostUpdateOne {
 	puo.mutation.SetPreviewImage(s)
+	return puo
+}
+
+// SetShortDescription sets the "short_description" field.
+func (puo *PostUpdateOne) SetShortDescription(s string) *PostUpdateOne {
+	puo.mutation.SetShortDescription(s)
 	return puo
 }
 
@@ -630,6 +650,11 @@ func (puo *PostUpdateOne) check() error {
 			return &ValidationError{Name: "preview_image", err: fmt.Errorf(`ent: validator failed for field "Post.preview_image": %w`, err)}
 		}
 	}
+	if v, ok := puo.mutation.ShortDescription(); ok {
+		if err := post.ShortDescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "short_description", err: fmt.Errorf(`ent: validator failed for field "Post.short_description": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -670,6 +695,9 @@ func (puo *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) 
 	}
 	if value, ok := puo.mutation.PreviewImage(); ok {
 		_spec.SetField(post.FieldPreviewImage, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.ShortDescription(); ok {
+		_spec.SetField(post.FieldShortDescription, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.IsPrivate(); ok {
 		_spec.SetField(post.FieldIsPrivate, field.TypeBool, value)
