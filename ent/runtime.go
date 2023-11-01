@@ -95,21 +95,7 @@ func init() {
 	// postDescShortDescription is the schema descriptor for short_description field.
 	postDescShortDescription := postFields[3].Descriptor()
 	// post.ShortDescriptionValidator is a validator for the "short_description" field. It is called by the builders before save.
-	post.ShortDescriptionValidator = func() func(string) error {
-		validators := postDescShortDescription.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(short_description string) error {
-			for _, fn := range fns {
-				if err := fn(short_description); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	post.ShortDescriptionValidator = postDescShortDescription.Validators[0].(func(string) error)
 	// postDescIsPrivate is the schema descriptor for is_private field.
 	postDescIsPrivate := postFields[4].Descriptor()
 	// post.DefaultIsPrivate holds the default value on creation for the is_private field.

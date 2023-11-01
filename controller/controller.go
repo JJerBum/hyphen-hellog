@@ -11,7 +11,7 @@ func Route(app *fiber.App) *fiber.App {
 	api := app.Group("/api/hellog")
 
 	// post
-	api.Post("/posts/:post_id", middleware.RequireAuth, handlers.CreatePost)
+	api.Post("/posts/post", middleware.RequireAuth, handlers.CreatePost)
 	api.Get("/posts", middleware.Auth, handlers.GetPosts)
 	api.Get("/posts/:post_id", middleware.Auth, handlers.GetPost)
 	api.Patch("/posts/:post_id", middleware.RequireAuth, handlers.UpdatePost)

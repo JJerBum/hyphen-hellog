@@ -23,7 +23,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	part, err := multipartWriter.CreateFormFile("image", "image.txt")
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 
@@ -31,7 +31,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	file, err := image.Open()
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 	defer file.Close()
@@ -40,7 +40,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	_, err = io.Copy(part, file)
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 
@@ -48,7 +48,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	err = multipartWriter.Close()
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 
@@ -66,7 +66,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 	defer resp.Body.Close()
@@ -75,7 +75,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 
@@ -84,7 +84,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	err = json.Unmarshal(respBody, respJSON)
 	if err != nil {
 		panic(cerrors.RequestFailedErr{
-			Err: err.Error(),
+			Err: "이미지 전송 이미지 만들다가 에러남 : " + err.Error(),
 		})
 	}
 

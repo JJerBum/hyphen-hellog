@@ -33,8 +33,7 @@ func (Post) Fields() []ent.Field {
 			Unique(),
 
 		field.String("short_description").
-			MaxLen(100).
-			NotEmpty(),
+			MaxLen(100),
 
 		field.Bool("is_private").
 			Default(false),

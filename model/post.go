@@ -18,7 +18,7 @@ type InCreatePost struct {
 	Title            string                `form:"title"  validate:"required"`
 	Content          string                `form:"content" validate:"required"`
 	PreviewImage     *multipart.FileHeader `form:"preview_image" validate:"required"`
-	ShortDescription string                `form:"short_description" validate:"required"`
+	ShortDescription string                `form:"short_description"`
 	IsPrivate        bool                  `form:"is_private"`
 }
 
