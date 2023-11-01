@@ -59,25 +59,6 @@ func (i *InGetPost) ParseX(c *fiber.Ctx) *InGetPost {
 	return i
 }
 
-type InGetPosts struct {
-	Num int `json:"post_id" validate:"required"`
-}
-
-func (i *InGetPosts) ParseX(c *fiber.Ctx) *InGetPosts {
-	var err error
-
-	i.Num, err = strconv.Atoi(c.Query("num"))
-	if err != nil {
-		panic(cerrors.ParsingErr{
-			Err: err.Error(),
-		})
-	}
-
-	verifier.Validate(i)
-
-	return i
-}
-
 type InUpdatePost struct {
 	Title        string                `form:"title"  validate:"required"`
 	Content      string                `form:"content" validate:"required"`

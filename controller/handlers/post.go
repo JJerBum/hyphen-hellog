@@ -31,15 +31,16 @@ func CreatePost(c *fiber.Ctx) error {
 }
 
 func GetPosts(c *fiber.Ctx) error {
-	clientReqeust := new(model.InGetPosts).ParseX(c)
 
 	response := new(model.OutGetPosts)
 	response.Posts = make([]*model.OutGetPost, 0)
 
-	for postID := 1; postID <= clientReqeust.Num; postID++ {
-		author, err := database.Get().GetAuthorByPostID(c.Context(), postID)
+	posts := database.Get().GetPostsX(c.Context())
+
+	for _, post := range posts {
+		author, err := database.Get().GetAuthorByPostID(c.Context(), post.ID)
 		if err != nil {
-			panic(cerrors.WrongApproachErr{Err: fmt.Sprintf("postID가 %d인 post를 찾을 수 없습니다.", postID)})
+			panic(cerrors.WrongApproachErr{Err: fmt.Sprintf("postID가 %d인 post를 찾을 수 없습니다.", post.ID)})
 		}
 
 		var isLiked bool
@@ -50,7 +51,7 @@ func GetPosts(c *fiber.Ctx) error {
 		}
 
 		response.Posts = append(response.Posts, &model.OutGetPost{
-			Post:    database.Get().GetPostX(c.Context(), postID),
+			Post:    post,
 			Author:  author,
 			IsLiked: isLiked,
 		})

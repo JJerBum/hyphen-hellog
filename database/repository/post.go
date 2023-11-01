@@ -42,6 +42,17 @@ func (d *DBType) GetPostX(ctx context.Context, ID int) *ent.Post {
 	return temp
 }
 
+func (d *DBType) GetPostsX(ctx context.Context) []*ent.Post {
+	temp, err := d.Post.Query().All(ctx)
+	if err != nil {
+		panic(cerrors.SelectErr{
+			Err: err.Error(),
+		})
+	}
+
+	return temp
+}
+
 // func (d *DBType) GetAuthor(ctx context.Context) *ent.Author {
 // 	return d.Post.Query().QueryAuthor().Where()
 // }
