@@ -94,7 +94,7 @@ func Validate(token string) (*model.InGetUserValidate, error) {
 	fmt.Println(body)
 	if len(body) == 0 {
 		return nil, cerrors.RequestFailedErr{
-			Err: "response body len is 0",
+			Err: "알맞이 않은 토큰 입니다.",
 		}
 	}
 
