@@ -30,9 +30,7 @@ func main() {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: errorHandler,
 	})
-
 	app.Use(recover.New())
-
 	controller.Route(app)
 
 	log.Fatal(controller.Route(app).Listen(port))

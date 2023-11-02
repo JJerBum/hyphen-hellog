@@ -77,21 +77,7 @@ func init() {
 	// postDescPreviewImage is the schema descriptor for preview_image field.
 	postDescPreviewImage := postFields[2].Descriptor()
 	// post.PreviewImageValidator is a validator for the "preview_image" field. It is called by the builders before save.
-	post.PreviewImageValidator = func() func(string) error {
-		validators := postDescPreviewImage.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(preview_image string) error {
-			for _, fn := range fns {
-				if err := fn(preview_image); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	post.PreviewImageValidator = postDescPreviewImage.Validators[0].(func(string) error)
 	// postDescShortDescription is the schema descriptor for short_description field.
 	postDescShortDescription := postFields[3].Descriptor()
 	// post.ShortDescriptionValidator is a validator for the "short_description" field. It is called by the builders before save.

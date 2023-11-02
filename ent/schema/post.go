@@ -28,9 +28,7 @@ func (Post) Fields() []ent.Field {
 			NotEmpty(),
 
 		field.String("preview_image").
-			MaxLen(100).
-			NotEmpty().
-			Unique(),
+			MaxLen(100),
 
 		field.String("short_description").
 			MaxLen(100),

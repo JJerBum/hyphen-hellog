@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"hyphen-hellog/cerrors"
 	"hyphen-hellog/ent"
 	"hyphen-hellog/verifier"
@@ -17,7 +18,7 @@ import (
 type InCreatePost struct {
 	Title            string                `form:"title"  validate:"required"`
 	Content          string                `form:"content" validate:"required"`
-	PreviewImage     *multipart.FileHeader `form:"preview_image" validate:"required"`
+	PreviewImage     *multipart.FileHeader `form:"preview_image"`
 	ShortDescription string                `form:"short_description"`
 	IsPrivate        bool                  `form:"is_private"`
 }
@@ -26,10 +27,16 @@ func (i *InCreatePost) ParseX(c *fiber.Ctx) *InCreatePost {
 	var err error
 
 	err = c.BodyParser(i)
-	i.IsPrivate = c.FormValue("is_private") == "true"
-	i.PreviewImage, err = c.FormFile("image")
 	if err != nil {
+		panic(cerrors.ParsingErr{
+			Err: err.Error(),
+		})
+	}
 
+	i.IsPrivate = c.FormValue("is_private") == "true"
+
+	i.PreviewImage, err = c.FormFile("image")
+	if err == errors.New("there is no uploaded file associated with the given key") {
 		panic(cerrors.ParsingErr{
 			Err: err.Error(),
 		})
@@ -106,6 +113,7 @@ func (i *InDeletePost) ParseX(c *fiber.Ctx) *InDeletePost {
 type OutGetPost struct {
 	*ent.Post   `json:"post"`
 	IsLiked     bool `json:"is_liked"`
+	MyLikes     int  `json:"my_likes"`
 	*ent.Author `json:"author"`
 }
 

@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"hyphen-hellog/cerrors"
 	"hyphen-hellog/model"
 	"io"
@@ -90,6 +91,7 @@ func Validate(token string) (*model.InGetUserValidate, error) {
 		}
 	}
 
+	fmt.Println(body)
 	if len(body) == 0 {
 		return nil, cerrors.RequestFailedErr{
 			Err: "response body len is 0",

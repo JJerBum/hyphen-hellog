@@ -27,6 +27,10 @@ func (d *DBType) CreatePostX(ctx context.Context, post *ent.Post, authorID int) 
 	return temp
 }
 
+func (d *DBType) GetPostMyLikesX(ctx context.Context, ID int) int {
+	return d.GetPostX(ctx, ID).QueryLikes().CountX(ctx)
+}
+
 // GetPost 함수는 ctx, ID를 매개변수로 받아 값을 조회하는 함수 입니다.
 // 에러가 발생하면 패닉이 발생됩니다.
 func (d *DBType) GetPostX(ctx context.Context, ID int) *ent.Post {

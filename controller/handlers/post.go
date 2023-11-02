@@ -13,12 +13,19 @@ import (
 
 func CreatePost(c *fiber.Ctx) error {
 	clientRequest := new(model.InCreatePost).ParseX(c)
+
+	var previewImage string = ""
+
+	if clientRequest.PreviewImage != nil {
+		previewImage = siss.CreateImage(clientRequest.PreviewImage)
+	}
+
 	database.Get().CreatePostX(c.Context(),
 		&ent.Post{
 			Title:            clientRequest.Title,
 			Content:          clientRequest.Content,
 			ShortDescription: clientRequest.ShortDescription,
-			PreviewImage:     siss.CreateImage(clientRequest.PreviewImage),
+			PreviewImage:     previewImage,
 			IsPrivate:        clientRequest.IsPrivate,
 		},
 		c.Locals("user").(*ent.Author).ID)
@@ -54,6 +61,7 @@ func GetPosts(c *fiber.Ctx) error {
 			Post:    post,
 			Author:  author,
 			IsLiked: isLiked,
+			MyLikes: database.Get().GetPostMyLikesX(c.Context(), post.ID),
 		})
 	}
 
@@ -86,6 +94,7 @@ func GetPost(c *fiber.Ctx) error {
 			Post:    post,
 			IsLiked: isLiked,
 			Author:  author,
+			MyLikes: database.Get().GetPostMyLikesX(c.Context(), post.ID),
 		},
 	})
 }

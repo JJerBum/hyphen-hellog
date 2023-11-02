@@ -19,7 +19,7 @@ func Route(app *fiber.App) *fiber.App {
 
 	// comment
 	api.Post("/posts/:post_id/comments/comment", middleware.RequireAuth, handlers.CreateComment)
-	api.Get("posts/:post_id/comments", middleware.RequireAuth, handlers.GetComment)
+	api.Get("posts/:post_id/comments", handlers.GetComment)
 	api.Patch("/posts/comments/comment", middleware.RequireAuth, handlers.UpdateComment)
 	api.Delete("/posts/comments/comment", middleware.RequireAuth, handlers.DeleteComment)
 
