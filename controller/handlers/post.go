@@ -15,7 +15,6 @@ func CreatePost(c *fiber.Ctx) error {
 	clientRequest := new(model.InCreatePost).ParseX(c)
 
 	var previewImage string = ""
-
 	if clientRequest.PreviewImage != nil {
 		previewImage = siss.CreateImage(clientRequest.PreviewImage)
 	}

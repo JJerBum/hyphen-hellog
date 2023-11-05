@@ -2,14 +2,13 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"hyphen-hellog/cerrors"
 	"hyphen-hellog/model"
 	"io"
 	"net/http"
 )
 
-var serverURL = "http://101.101.217.155:8081/api"
+var serverURL = "http://127.0.0.1:8081/api"
 
 // Get()함수는 User token 매개변수를 이용해 마이크로서비스에게 /api/user/info로 요청하여 응답값을 반환하는 함수입니다.
 func Get(token string) *model.InGetUserInfo {
@@ -91,10 +90,9 @@ func Validate(token string) (*model.InGetUserValidate, error) {
 		}
 	}
 
-	fmt.Println(body)
 	if len(body) == 0 {
 		return nil, cerrors.RequestFailedErr{
-			Err: "알맞이 않은 토큰 입니다.",
+			Err: "알맞지 않은 토큰 입니다.",
 		}
 	}
 

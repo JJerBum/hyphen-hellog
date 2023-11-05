@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-var serverURL = "http://101.101.217.155:8083/api/siss/images/"
+var serverURL = "http://220.122.166.117:8080/api/siss/images"
 
 func CreateImage(image *multipart.FileHeader) string {
 	// request body 설정하는 방법
@@ -53,8 +53,7 @@ func CreateImage(image *multipart.FileHeader) string {
 	}
 
 	// HTTP POST 요청 만들기
-	targetURL := "http://101.101.217.155:8083/api/siss/images/image"
-	req, err := http.NewRequest("POST", targetURL, &requestBody)
+	req, err := http.NewRequest("POST", serverURL+"/image", &requestBody)
 
 	// Content-Type 설정
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType())
@@ -100,7 +99,7 @@ func CreateImage(image *multipart.FileHeader) string {
 		})
 	}
 
-	return serverURL + respJSON.Data.ID
+	return serverURL + "/" + respJSON.Data.ID
 }
 
 func DeleteImage(image string) {
